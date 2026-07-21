@@ -39,11 +39,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-btn.active { border-bottom-color: #7A1C1C; color: #7A1C1C; background-color: #FFFDF7; font-weight: bold; }
-        
-        /* Interactive button styles for river crossing */
-        .river-btn { background-color: #F8F5EE; border: 1px solid #E2D9C8; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
-        .river-btn:active { background-color: #E2D9C8; }
-        .river-btn:disabled { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
 <body class="bg-parchment text-ink font-body min-h-screen flex flex-col items-center p-2 sm:p-4 antialiased">
@@ -108,50 +103,50 @@
 
         <!-- GAME 4: RIVER CROSSING -->
         <div id="content-river" class="tab-content">
-            <div class="text-center mb-4">
+            <div class="text-center mb-3">
                 <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game IV: Constraint Logic</span>
-                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Looking-Glass River</h2>
-                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Boat holds max 2. If Hedgehogs ever outnumber Flamingos on either bank, they eat them!</p>
+                <h2 id="river-title" class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5"></h2>
+                <p id="river-desc" class="text-ink-muted italic text-xs sm:text-sm mt-1"></p>
+                <p class="font-sans text-[10px] sm:text-xs text-gold font-semibold mt-1">💡 Tip: Tap items to load/unload the boat.</p>
+                <p id="river-time" class="font-bold text-burgundy text-xs mt-1 hidden"></p>
             </div>
             
-            <div class="grid grid-cols-3 gap-2 bg-parchment border border-borderSepia p-3 rounded-lg text-center min-h-[160px] items-start text-xs sm:text-sm mb-4">
+            <div class="flex gap-2 bg-parchment border border-borderSepia p-3 rounded-lg text-center min-h-[160px] items-stretch text-xs sm:text-sm mb-4 relative overflow-hidden">
                 
                 <!-- LEFT BANK -->
-                <div class="p-2 border border-borderSepia/60 rounded bg-white flex flex-col h-full justify-between" id="river-left">
-                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs">LEFT BANK</span>
-                    <div id="river-left-items" class="text-lg my-2 min-h-[28px]"></div>
-                    <div class="flex gap-1 justify-center">
-                        <button id="btn-l-f" onclick="moveAnimal('f', 'toBoat')" class="river-btn">Load 🦩</button>
-                        <button id="btn-l-h" onclick="moveAnimal('h', 'toBoat')" class="river-btn">Load 🦔</button>
-                    </div>
+                <div class="flex-1 p-2 border border-borderSepia/60 rounded bg-white flex flex-col items-center justify-center" id="river-left">
+                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs mb-2">LEFT BANK</span>
+                    <div id="river-left-items" class="text-2xl flex flex-wrap justify-center gap-1 select-none min-h-[32px]"></div>
                 </div>
 
-                <!-- BOAT -->
-                <div class="p-2 border border-blue-200 rounded bg-blue-50 flex flex-col justify-between h-full">
-                    <span class="font-bold text-blue-800 text-[10px] sm:text-xs" id="river-boat-status">BOAT (LEFT)</span>
-                    <div id="river-boat-items" class="text-lg my-1 min-h-[28px]"></div>
-                    <div class="flex flex-col gap-1 w-full mt-1">
-                        <div class="flex gap-1 justify-center">
-                            <button id="btn-b-f" onclick="moveAnimal('f', 'toBank')" class="river-btn !border-blue-200 !bg-white">Off 🦩</button>
-                            <button id="btn-b-h" onclick="moveAnimal('h', 'toBank')" class="river-btn !border-blue-200 !bg-white">Off 🦔</button>
+                <!-- RIVER / BOAT -->
+                <div class="flex-[1.5] relative bg-blue-50/50 border-x border-blue-200 p-2 flex flex-col justify-center rounded overflow-hidden min-h-[120px]">
+                    <div class="absolute w-full h-[2px] bg-blue-200/60 top-1/2 -translate-y-1/2"></div>
+                    
+                    <div class="relative w-full h-[60px] flex items-center">
+                        <div id="boat-wrapper" class="absolute transition-all duration-700 ease-in-out shadow-sm bg-white border-2 border-blue-300 rounded-full px-2 py-1 flex items-center justify-center gap-2 min-w-[75px] z-10" style="left: 2%; transform: translateX(0%);">
+                            <span class="text-2xl transition-transform duration-500" id="boat-icon" style="transform: scaleX(-1);">🛶</span>
+                            <div id="river-boat-items" class="flex gap-1 text-2xl select-none min-h-[32px] items-center"></div>
                         </div>
-                        <button onclick="crossRiver()" id="btn-cross" class="bg-burgundy text-white px-2 py-1 rounded text-[10px] font-bold shadow hover:bg-burgundy/90 w-full mt-1">CROSS 🌊</button>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-center z-20">
+                        <button onclick="crossRiver()" id="btn-cross" class="bg-burgundy text-white px-4 py-1.5 rounded text-[10px] font-bold shadow hover:bg-burgundy/90 transition-colors disabled:opacity-50">CROSS 🌊</button>
                     </div>
                 </div>
 
                 <!-- RIGHT BANK -->
-                <div class="p-2 border border-borderSepia/60 rounded bg-white flex flex-col h-full justify-between" id="river-right">
-                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs">RIGHT BANK</span>
-                    <div id="river-right-items" class="text-lg my-2 min-h-[28px]"></div>
-                    <div class="flex gap-1 justify-center">
-                        <button id="btn-r-f" onclick="moveAnimal('f', 'toBoat')" class="river-btn">Load 🦩</button>
-                        <button id="btn-r-h" onclick="moveAnimal('h', 'toBoat')" class="river-btn">Load 🦔</button>
-                    </div>
+                <div class="flex-1 p-2 border border-borderSepia/60 rounded bg-white flex flex-col items-center justify-center" id="river-right">
+                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs mb-2">RIGHT BANK</span>
+                    <div id="river-right-items" class="text-2xl flex flex-wrap justify-center gap-1 select-none min-h-[32px]"></div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center">
-                <button onclick="resetRiver()" class="text-xs text-ink-muted underline font-sans">🔄 Restart River</button>
+            <div class="flex justify-between items-center mt-2">
+                <div class="flex gap-3">
+                    <button onclick="resetRiver()" class="text-xs text-ink-muted underline font-sans hover:text-ink transition-colors">🔄 Restart</button>
+                    <button onclick="nextRiverVariant()" class="text-xs text-ink-muted underline font-sans hover:text-ink transition-colors">🎲 Next Variant</button>
+                </div>
                 <div id="river-result" class="font-display font-bold text-sm sm:text-base text-right max-w-[200px] leading-tight"></div>
             </div>
         </div>
@@ -164,10 +159,7 @@
                 <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Green means correct! Red means try again!</p>
             </div>
 
-            <!-- Clues -->
             <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-xs sm:text-sm" id="einstein-clues"></div>
-
-            <!-- Interactive Grid -->
             <div class="grid grid-cols-3 gap-2 mb-4 text-xs" id="einstein-grid"></div>
 
             <div class="flex justify-center">
@@ -217,21 +209,90 @@
             syllogism: [
                 { premises: ["1. All Borogoves are mimsy creatures.", "2. No mimsy creatures are fierce."], options: ["All Borogoves are fierce.", "No Borogoves are fierce.", "Some mimsy creatures are Borogoves.", "All fierce things are mimsy."], answer: "No Borogoves are fierce." },
                 { premises: ["1. All slithy toves gyre and gumble.", "2. Everything that gyres and gumbles makes a racket."], options: ["All slithy toves make a racket.", "No slithy toves make a racket.", "Some rackets are slithy.", "Gyring is always silent."], answer: "All slithy toves make a racket." },
-                { premises: ["1. All Bread-and-Butterflies have wings of bread.", "2. Some creatures with wings of bread dissolve in tea."], options: ["All Bread-and-Butterflies dissolve in tea.", "No Bread-and-Butterflies dissolve in tea.", "Some Bread-and-Butterflies may dissolve in tea.", "All tea dissolves wings."], answer: "Some Bread-and-Butterflies may dissolve in tea." },
-                { premises: ["1. If it is 6:00 PM, the Hatter is at tea.", "2. The Hatter is not at tea."], options: ["It is 6:00 PM.", "It is not 6:00 PM.", "The Hatter is asleep.", "Tea is finished."], answer: "It is not 6:00 PM." },
-                { premises: ["1. No playing cards can withstand the wind.", "2. The Queen of Hearts is a playing card."], options: ["The Queen of Hearts causes wind.", "The Queen can withstand the wind.", "The Queen cannot withstand the wind.", "All winds are playing cards."], answer: "The Queen cannot withstand the wind." }
+                { premises: ["1. All Bread-and-Butterflies have wings of bread.", "2. Some creatures with wings of bread dissolve in tea."], options: ["All Bread-and-Butterflies dissolve in tea.", "No Bread-and-Butterflies dissolve in tea.", "Some Bread-and-Butterflies may dissolve in tea.", "All tea dissolves wings."], answer: "Some Bread-and-Butterflies may dissolve in tea." }
             ],
             fallacy: [
                 { quote: "Either you drink tea with us right this second, or you hate friendship altogether!", options: ["Ad Hominem", "False Dilemma", "Straw Man", "Appeal to Authority"], answer: "False Dilemma" },
                 { quote: "You claim my soup has too much pepper? Well, you are just an uneducated child who knows nothing of fine cooking!", options: ["Ad Hominem", "Appeal to Ignorance", "Red Herring", "False Dilemma"], answer: "Ad Hominem" },
-                { quote: "The Queen said the sky is green, and as sovereign ruler, her word is supreme, so the sky must be green!", options: ["Appeal to Authority", "Slippery Slope", "Hasty Generalization", "Circular Reasoning"], answer: "Appeal to Authority" },
-                { quote: "Alice: 'What time is it?' Hatter: 'Why is a raven like a writing desk?'", options: ["Ad Hominem", "False Cause", "Red Herring", "Appeal to Emotion"], answer: "Red Herring" },
-                { quote: "If we don't behead the Knave for stealing tarts today, tomorrow he will steal the crown, and the kingdom will fall!", options: ["Slippery Slope", "Straw Man", "Bandwagon", "False Dilemma"], answer: "Slippery Slope" }
+                { quote: "Alice: 'What time is it?' Hatter: 'Why is a raven like a writing desk?'", options: ["Ad Hominem", "False Cause", "Red Herring", "Appeal to Emotion"], answer: "Red Herring" }
             ],
             knights: [
                 { prompt: "Tweedledee says: 'At least one of us is a Knave.' What are Tweedledee and Tweedledum?", options: ["Dee is Knight, Dum is Knave", "Both are Knaves", "Dee is Knave, Dum is Knight", "Both are Knights"], answer: "Dee is Knight, Dum is Knave" },
                 { prompt: "Tweedledee says: 'We are both Knaves.' What are Tweedledee and Tweedledum?", options: ["Dee is Knave, Dum is Knight", "Both are Knaves", "Both are Knights", "Dee is Knight, Dum is Knave"], answer: "Dee is Knave, Dum is Knight" },
-                { prompt: "Tweedledee says: 'I am a Knave, or Tweedledum is a Knight.' What are they?", options: ["Both are Knights", "Both are Knaves", "Dee is Knave, Dum is Knight", "Dee is Knight, Dum is Knave"], answer: "Both are Knights" }
+                { prompt: "Tweedledee says: 'Tweedledum is a Knave.' Tweedledum says: 'We are opposites.' What are they?", options: ["Dee is Knave, Dum is Knight", "Both are Knights", "Both are Knaves", "Dee is Knight, Dum is Knave"], answer: "Dee is Knave, Dum is Knight" }
+            ],
+            riverGames: [
+                {
+                    id: "looking-glass",
+                    title: "The Looking-Glass River",
+                    desc: "Boat holds max 2. If Hedgehogs (🦔) ever outnumber Flamingos (🦩) on either bank (including the boat), they eat them!",
+                    entities: { f: "🦩", h: "🦔" },
+                    start: { f: 3, h: 3 },
+                    maxBoat: 2,
+                    mustHave: null,
+                    validateCross: (state) => {
+                        const checkBank = (bankStr) => {
+                            const f = state[bankStr].f + (state.boatPos === bankStr ? state.boat.f : 0);
+                            const h = state[bankStr].h + (state.boatPos === bankStr ? state.boat.h : 0);
+                            return (f > 0 && h > f);
+                        };
+                        if (checkBank('left') || checkBank('right')) return { over: true, win: false, msg: "🔴 HEDGEHOGS ATE FLAMINGOS!" };
+                        if (state.right.f === 3 && state.right.h === 3) return { over: true, win: true, msg: "🟢 SAFELY CROSSED!" };
+                        return { over: false };
+                    }
+                },
+                {
+                    id: "farmer",
+                    title: "The Farmer's Dilemma",
+                    desc: "Boat holds Farmer + 1. Only the Farmer (👨‍🌾) can row. Don't leave Fox (🦊) with Goose (🪿), or Goose with Beans (🫘)!",
+                    entities: { p: "👨‍🌾", f: "🦊", g: "🪿", b: "🫘" },
+                    start: { p: 1, f: 1, g: 1, b: 1 },
+                    maxBoat: 2,
+                    mustHave: 'p',
+                    validateCross: (state) => {
+                        const checkBank = (bankStr) => {
+                            const p = state[bankStr].p + (state.boatPos === bankStr ? state.boat.p : 0);
+                            const f = state[bankStr].f + (state.boatPos === bankStr ? state.boat.f : 0);
+                            const g = state[bankStr].g + (state.boatPos === bankStr ? state.boat.g : 0);
+                            const b = state[bankStr].b + (state.boatPos === bankStr ? state.boat.b : 0);
+                            if (p === 0) {
+                                if (f > 0 && g > 0) return "🔴 FOX ATE GOOSE!";
+                                if (g > 0 && b > 0) return "🔴 GOOSE ATE BEANS!";
+                            }
+                            return null;
+                        };
+                        let failL = checkBank('left');
+                        if (failL) return { over: true, win: false, msg: failL };
+                        let failR = checkBank('right');
+                        if (failR) return { over: true, win: false, msg: failR };
+                        
+                        if (state.right.p === 1 && state.right.f === 1 && state.right.g === 1 && state.right.b === 1) return { over: true, win: true, msg: "🟢 SAFELY CROSSED!" };
+                        return { over: false };
+                    }
+                },
+                {
+                    id: "torch",
+                    title: "The Midnight Bridge",
+                    desc: "All 4 must cross before 17 min. Boat holds Torch + 2. Torch (🔥) must be in the boat. Time taken is the SLOWEST passenger.",
+                    entities: { t: "🔥", a: "1️⃣", b: "2️⃣", c: "5️⃣", d: "🔟" },
+                    start: { t: 1, a: 1, b: 1, c: 1, d: 1 },
+                    maxBoat: 3, 
+                    mustHave: 't',
+                    timeLimit: 17,
+                    onCross: (state) => {
+                        let maxTime = 0;
+                        if (state.boat.a) maxTime = Math.max(maxTime, 1);
+                        if (state.boat.b) maxTime = Math.max(maxTime, 2);
+                        if (state.boat.c) maxTime = Math.max(maxTime, 5);
+                        if (state.boat.d) maxTime = Math.max(maxTime, 10);
+                        state.time += maxTime;
+                    },
+                    validateCross: (state) => {
+                        if (state.time > state.gameDef.timeLimit) return { over: true, win: false, msg: `🔴 TOOK ${state.time} MINS! (> 17)` };
+                        if (state.right.a === 1 && state.right.b === 1 && state.right.c === 1 && state.right.d === 1) return { over: true, win: true, msg: `🟢 CROSSED IN ${state.time} MIN!` };
+                        return { over: false };
+                    }
+                }
             ],
             einstein: [
                 {
@@ -241,29 +302,20 @@
                         { color: "Red", drink: "Tea", pet: "Cat" },
                         { color: "Blue", drink: "Water", pet: "Rabbit" }
                     ]
-                },
-                {
-                    clues: ["1. The Dormouse owner drinks Water.", "2. House #3 is Red.", "3. The Tea drinker lives in the Blue house.", "4. House #1 is Green.", "5. The Cat owner lives in the Green house."],
-                    solution: [
-                        { color: "Green", drink: "Milk", pet: "Cat" },
-                        { color: "Blue", drink: "Tea", pet: "Rabbit" },
-                        { color: "Red", drink: "Water", pet: "Dormouse" }
-                    ]
                 }
             ],
             causality: [
-                { prompt: "Why does the Cheshire Cat keep vanishing?", runs: ["Run 1: Pepper, Duchess Singing, Crown -> Cat Visible", "Run 2: Pepper, Duchess Silent, Crown -> Cat Vanishes", "Run 3: Milk Spilled, Duchess Silent, Crown -> Cat Vanishes"], options: ["Pepper", "Duchess Silent", "Crown", "Milk Spilled"], answer: "Duchess Silent" },
-                { prompt: "Why does the Pocket-Watch keep stopping?", runs: ["Run 1: Wind Key, Butter applied, Tea spilled -> Watch Stops", "Run 2: Wind Key, Butter applied, No Tea -> Watch Stops", "Run 3: Wind Key, No Butter, No Tea -> Watch Runs"], options: ["Wind Key", "Butter applied", "Tea spilled", "No Tea"], answer: "Butter applied" },
-                { prompt: "Why does the Dormouse suddenly wake up?", runs: ["Run 1: Hot Tea, Loud Singing, Hatter's Hat -> Remains Asleep", "Run 2: No Tea, Loud Singing, Hatter's Hat -> Remains Asleep", "Run 3: Hot Tea, Pinched Nose, Hatter's Hat -> Wakes Up"], options: ["Hot Tea", "Loud Singing", "Hatter's Hat", "Pinched Nose"], answer: "Pinched Nose" }
+                { prompt: "Why does the Cheshire Cat keep vanishing?", runs: ["Run 1: Pepper, Duchess Singing, Crown -> Cat Visible", "Run 2: Pepper, Duchess Silent, Crown -> Cat Vanishes", "Run 3: Milk Spilled, Duchess Silent, Crown -> Cat Vanishes"], options: ["Pepper", "Duchess Silent", "Crown", "Milk Spilled"], answer: "Duchess Silent" }
             ],
             taxonomy: [
-                { prompt: "Sort the observations regarding a Vorpal Sword and a Snark.", cards: [{ id: "t1", text: "A Vorpal Sword is a blade that goes snicker-snack.", type: "definition" }, { id: "t2", text: "A Snark is far harder to catch than a Sword.", type: "degree" }], buckets: [{ id: "definition", icon: "✒️", name: "DEFINITION", desc: "Essence & Genus" }, { id: "degree", icon: "⚖️", name: "DEGREE", desc: "Greater / Lesser" }] },
-                { prompt: "Sort the observations regarding a Flamingo Mallet and a Hedgehog Ball.", cards: [{ id: "t3", text: "Striking the Hedgehog too firmly causes it to walk away.", type: "cause" }, { id: "t4", text: "The opposite of an uncooperative Hedgehog is a Stone Sphere.", type: "opposition" }], buckets: [{ id: "cause", icon: "⚡", name: "CAUSE & EFFECT", desc: "Origins / Results" }, { id: "opposition", icon: "☯️", name: "OPPOSITION", desc: "Contraries" }] }
+                { prompt: "Sort the observations regarding a Vorpal Sword and a Snark.", cards: [{ id: "t1", text: "A Vorpal Sword is a blade that goes snicker-snack.", type: "definition" }, { id: "t2", text: "A Snark is far harder to catch than a Sword.", type: "degree" }], buckets: [{ id: "definition", icon: "✒️", name: "DEFINITION", desc: "Essence & Genus" }, { id: "degree", icon: "⚖️", name: "DEGREE", desc: "Greater / Lesser" }] }
             ]
         };
 
         let activeGames = {};
         let selectedCardEl = null;
+        let currentRiverVariant = 0;
+        let riverState = {};
 
         window.onload = () => {
             activeGames.syllogism = db.syllogism[Math.floor(Math.random() * db.syllogism.length)];
@@ -276,7 +328,7 @@
             renderSyllogism();
             renderFallacy();
             renderKnights();
-            resetRiver();
+            resetRiver(0);
             renderEinstein();
             renderCausality();
             renderTaxonomy();
@@ -320,41 +372,90 @@
             else res.innerHTML = "<span class='text-burgundy'>🔴 FALLACY DETECTED. Try again.</span>";
         }
 
-        let riverState = {};
-        
-        function resetRiver() {
-            riverState = { left: { f: 3, h: 3 }, right: { f: 0, h: 0 }, boat: { f: 0, h: 0 }, boatPos: 'left', gameOver: false };
+        /* --- RIVER ENGINE --- */
+        function nextRiverVariant() {
+            currentRiverVariant = (currentRiverVariant + 1) % db.riverGames.length;
+            resetRiver(currentRiverVariant);
+        }
+
+        function resetRiver(idx) {
+            if (idx !== undefined) currentRiverVariant = idx;
+            const def = db.riverGames[currentRiverVariant];
+            
+            riverState = {
+                gameDef: def,
+                left: { ...def.start },
+                right: Object.keys(def.start).reduce((acc, k) => ({...acc, [k]: 0}), {}),
+                boat: Object.keys(def.start).reduce((acc, k) => ({...acc, [k]: 0}), {}),
+                boatPos: 'left',
+                gameOver: false,
+                time: 0
+            };
+            
+            document.getElementById('river-title').innerText = def.title;
+            document.getElementById('river-desc').innerText = def.desc;
             document.getElementById('river-result').innerText = "";
             renderRiver();
         }
 
         function renderRiver() {
-            document.getElementById('river-left-items').innerHTML = '🦩'.repeat(riverState.left.f) + '🦔'.repeat(riverState.left.h);
-            document.getElementById('river-right-items').innerHTML = '🦩'.repeat(riverState.right.f) + '🦔'.repeat(riverState.right.h);
+            const def = riverState.gameDef;
+            const timeDisplay = document.getElementById('river-time');
+            if (def.timeLimit) {
+                timeDisplay.classList.remove('hidden');
+                timeDisplay.innerText = `⏱️ Time elapsed: ${riverState.time} / ${def.timeLimit} min`;
+            } else {
+                timeDisplay.classList.add('hidden');
+            }
+
+            const buildItems = (stateObj, isBoat) => {
+                return Object.entries(def.entities).flatMap(([k, v]) => 
+                    Array(stateObj[k]).fill(`<span class="cursor-pointer hover:scale-110 active:scale-95 transition-transform" onclick="moveAnimal('${k}', '${isBoat ? 'toBank' : 'toBoat'}')">${v}</span>`)
+                ).join('');
+            };
+
+            document.getElementById('river-left-items').innerHTML = buildItems(riverState.left, false);
+            document.getElementById('river-right-items').innerHTML = buildItems(riverState.right, false);
             
-            const boatContents = '🦩'.repeat(riverState.boat.f) + '🦔'.repeat(riverState.boat.h);
+            const boatContents = buildItems(riverState.boat, true);
             document.getElementById('river-boat-items').innerHTML = boatContents || '<span class="text-[10px] text-ink-muted italic">Empty</span>';
-            document.getElementById('river-boat-status').innerText = `BOAT (${riverState.boatPos.toUpperCase()})`;
 
-            const boatTotal = riverState.boat.f + riverState.boat.h;
+            const boatWrap = document.getElementById('boat-wrapper');
+            const boatIcon = document.getElementById('boat-icon');
             
-            document.getElementById('btn-l-f').disabled = (riverState.boatPos !== 'left' || riverState.left.f === 0 || boatTotal >= 2 || riverState.gameOver);
-            document.getElementById('btn-l-h').disabled = (riverState.boatPos !== 'left' || riverState.left.h === 0 || boatTotal >= 2 || riverState.gameOver);
-            
-            document.getElementById('btn-r-f').disabled = (riverState.boatPos !== 'right' || riverState.right.f === 0 || boatTotal >= 2 || riverState.gameOver);
-            document.getElementById('btn-r-h').disabled = (riverState.boatPos !== 'right' || riverState.right.h === 0 || boatTotal >= 2 || riverState.gameOver);
-            
-            document.getElementById('btn-b-f').disabled = (riverState.boat.f === 0 || riverState.gameOver);
-            document.getElementById('btn-b-h').disabled = (riverState.boat.h === 0 || riverState.gameOver);
+            if (riverState.boatPos === 'left') {
+                boatWrap.style.left = '2%';
+                boatWrap.style.transform = 'translateX(0%)';
+                boatIcon.style.transform = 'scaleX(-1)';
+            } else {
+                boatWrap.style.left = '98%';
+                boatWrap.style.transform = 'translateX(-100%)';
+                boatIcon.style.transform = 'scaleX(1)';
+            }
 
-            document.getElementById('btn-cross').disabled = (boatTotal === 0 || riverState.gameOver);
+            let boatCount = Object.values(riverState.boat).reduce((a, b) => a + b, 0);
+            let hasMustHave = def.mustHave ? (riverState.boat[def.mustHave] > 0) : true;
+            let canCross = boatCount > 0 && hasMustHave && !riverState.gameOver;
+            
+            const btn = document.getElementById('btn-cross');
+            btn.disabled = !canCross;
+            
+            if (!hasMustHave && boatCount > 0) {
+                btn.innerText = `Needs ${def.entities[def.mustHave]}!`;
+                btn.classList.replace('bg-burgundy', 'bg-gray-400');
+            } else {
+                btn.innerText = "CROSS 🌊";
+                btn.classList.replace('bg-gray-400', 'bg-burgundy');
+            }
         }
 
         function moveAnimal(type, dir) {
             if (riverState.gameOver) return;
             const bank = riverState.boatPos;
-            
-            if (dir === 'toBoat' && (riverState.boat.f + riverState.boat.h < 2)) {
+            const def = riverState.gameDef;
+            let boatCount = Object.values(riverState.boat).reduce((a, b) => a + b, 0);
+
+            if (dir === 'toBoat' && boatCount < def.maxBoat) {
                 if (riverState[bank][type] > 0) {
                     riverState[bank][type]--;
                     riverState.boat[type]++;
@@ -369,32 +470,28 @@
         }
 
         function crossRiver() {
-            if (riverState.gameOver || (riverState.boat.f + riverState.boat.h) === 0) return;
+            const def = riverState.gameDef;
+            if (riverState.gameOver) return;
+            
+            let boatCount = Object.values(riverState.boat).reduce((a, b) => a + b, 0);
+            if (boatCount === 0 || (def.mustHave && riverState.boat[def.mustHave] === 0)) return;
+
+            if (def.onCross) def.onCross(riverState);
             
             riverState.boatPos = riverState.boatPos === 'left' ? 'right' : 'left';
-            renderRiver();
-
-            const checkBank = (bankStr) => {
-                const f = riverState[bankStr].f + (riverState.boatPos === bankStr ? riverState.boat.f : 0);
-                const h = riverState[bankStr].h + (riverState.boatPos === bankStr ? riverState.boat.h : 0);
-                return (f > 0 && h > f);
-            };
-
-            if (checkBank('left') || checkBank('right')) {
+            
+            const res = def.validateCross(riverState);
+            if (res.over) {
                 riverState.gameOver = true;
-                document.getElementById('river-result').innerHTML = "<span class='text-burgundy'>🔴 HEDGEHOGS ATE FLAMINGOS!</span>";
-                renderRiver();
-            } else if (riverState.right.f === 3 && riverState.right.h === 3 && riverState.boatPos === 'right') {
-                riverState.gameOver = true;
-                document.getElementById('river-result').innerHTML = "<span class='text-green-700'>🟢 SAFELY CROSSED!</span>";
-                renderRiver();
+                document.getElementById('river-result').innerHTML = `<span class='${res.win ? 'text-green-700' : 'text-burgundy'}'>${res.msg}</span>`;
             }
+            renderRiver();
         }
 
+        /* --- EINSTEIN ENGINE --- */
         function renderEinstein() {
             const game = activeGames.einstein;
             document.getElementById('einstein-clues').innerHTML = game.clues.map(c => `<p class="py-0.5 border-b border-borderSepia/50 last:border-0">${c}</p>`).join('');
-
             const optionsColor = ["Color?", "Green", "Red", "Blue"];
             const optionsDrink = ["Drink?", "Milk", "Tea", "Water"];
             const optionsPet = ["Pet?", "Cat", "Rabbit", "Dormouse"];
@@ -421,13 +518,7 @@
         function checkEinstein() {
             const game = activeGames.einstein;
             let allCorrect = true;
-            
             for (let i = 1; i <= 3; i++) {
-                const c = document.getElementById(`e-color-${i}`);
-                const d = document.getElementById(`e-drink-${i}`);
-                const p = document.getElementById(`e-pet-${i}`);
-                const expected = game.solution[i-1];
-
                 const checkField = (el, val, exp) => {
                     if (val === exp) {
                         el.classList.remove('bg-red-100', 'border-red-400');
@@ -438,28 +529,20 @@
                         allCorrect = false;
                     }
                 };
-
-                checkField(c, c.value, expected.color);
-                checkField(d, d.value, expected.drink);
-                checkField(p, p.value, expected.pet);
+                checkField(document.getElementById(`e-color-${i}`), document.getElementById(`e-color-${i}`).value, game.solution[i-1].color);
+                checkField(document.getElementById(`e-drink-${i}`), document.getElementById(`e-drink-${i}`).value, game.solution[i-1].drink);
+                checkField(document.getElementById(`e-pet-${i}`), document.getElementById(`e-pet-${i}`).value, game.solution[i-1].pet);
             }
-            
-            const res = document.getElementById('einstein-result');
-            if (allCorrect) {
-                res.innerHTML = "<span class='text-green-700'>🟢 PERFECT DEDUCTION!</span>";
-            } else {
-                res.innerHTML = "<span class='text-burgundy'>🔴 ERRORS DETECTED. Adjust your grid.</span>";
-            }
+            document.getElementById('einstein-result').innerHTML = allCorrect ? "<span class='text-green-700'>🟢 PERFECT DEDUCTION!</span>" : "<span class='text-burgundy'>🔴 ERRORS DETECTED. Adjust your grid.</span>";
         }
 
+        /* --- TAXONOMY ENGINE --- */
         function renderTaxonomy() {
             const g = activeGames.taxonomy;
             document.getElementById('tax-prompt').innerText = g.prompt;
-            
             document.getElementById('tax-cards').innerHTML = g.cards.map(c => 
                 `<div id="${c.id}" class="tax-card p-2 bg-white border border-borderSepia rounded shadow-sm text-xs cursor-pointer active:scale-95 transition-transform" draggable="true" ondragstart="drag(event)" onclick="selectCard(this)">${c.text}</div>`
             ).join('');
-
             document.getElementById('tax-buckets').innerHTML = g.buckets.map(b => 
                 `<div id="${b.id}" class="bucket p-3 border-2 border-dashed border-borderSepia/60 rounded bg-parchment flex flex-col items-center min-h-[100px] cursor-pointer" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleContainerTap(event, '${b.id}')">
                     <span class="text-2xl mb-1">${b.icon}</span>
@@ -470,21 +553,12 @@
             ).join('');
         }
 
-        function allowDrop(ev) { 
-            ev.preventDefault(); 
-            ev.currentTarget.classList.add('drag-over'); 
-        }
-
-        function drag(ev) { 
-            ev.dataTransfer.setData("text", ev.target.id); 
-            ev.target.classList.add('dragging');
-        }
-
+        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); ev.target.classList.add('dragging'); }
         function drop(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
-            const data = ev.dataTransfer.getData("text");
-            const el = document.getElementById(data);
+            const el = document.getElementById(ev.dataTransfer.getData("text"));
             if (el) {
                 el.classList.remove('dragging');
                 const targetContent = ev.currentTarget.classList.contains('bucket') ? ev.currentTarget.querySelector('.bucket-content') : document.getElementById('tax-cards');
@@ -494,22 +568,14 @@
         
         function selectCard(el) {
             if (selectedCardEl) selectedCardEl.classList.remove('selected-card');
-            if (selectedCardEl === el) {
-                selectedCardEl = null;
-                return;
-            }
+            if (selectedCardEl === el) { selectedCardEl = null; return; }
             selectedCardEl = el;
             selectedCardEl.classList.add('selected-card');
         }
 
         function handleContainerTap(ev, containerId) {
             if (!selectedCardEl) return;
-            let target;
-            if (containerId === 'queue') {
-                target = document.getElementById('tax-cards');
-            } else {
-                target = document.getElementById(containerId).querySelector('.bucket-content');
-            }
+            const target = containerId === 'queue' ? document.getElementById('tax-cards') : document.getElementById(containerId).querySelector('.bucket-content');
             if (target && selectedCardEl.parentElement !== target) {
                 target.appendChild(selectedCardEl);
                 selectedCardEl.classList.remove('selected-card');
@@ -520,12 +586,10 @@
         function checkTaxonomy() {
             const g = activeGames.taxonomy;
             let allCorrect = true;
-            
             g.cards.forEach(c => {
                 const el = document.getElementById(c.id);
                 if (!el) return;
                 const parentBucket = el.closest('.bucket');
-                
                 if (!parentBucket || parentBucket.id !== c.type) {
                     allCorrect = false;
                     el.classList.add('border-burgundy', 'bg-red-50');
@@ -538,14 +602,9 @@
 
             const res = document.getElementById('tax-result');
             const unassigned = document.getElementById('tax-cards').children.length > 0;
-            
-            if (unassigned) {
-                res.innerHTML = "<span class='text-burgundy'>🔴 SORT ALL CARDS FIRST.</span>";
-            } else if (allCorrect) {
-                res.innerHTML = "<span class='text-green-700'>🟢 CATEGORICAL SUCCESS!</span>";
-            } else {
-                res.innerHTML = "<span class='text-burgundy'>🔴 TAXONOMY ERROR DETECTED.</span>";
-            }
+            if (unassigned) res.innerHTML = "<span class='text-burgundy'>🔴 SORT ALL CARDS FIRST.</span>";
+            else if (allCorrect) res.innerHTML = "<span class='text-green-700'>🟢 CATEGORICAL SUCCESS!</span>";
+            else res.innerHTML = "<span class='text-burgundy'>🔴 TAXONOMY ERROR DETECTED.</span>";
         }
     </script>
 </body>
