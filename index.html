@@ -151,20 +151,21 @@
             </div>
         </div>
 
-        <!-- GAME 5: EINSTEIN'S GRID -->
+        <!-- GAME 5: EINSTEIN'S DEDUCTION -->
         <div id="content-einstein" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game V: Grid Deduction</span>
                 <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Cheshire Row</h2>
-                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Green means correct! Red means try again!</p>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Read the clues carefully to deduce the final answer!</p>
             </div>
 
-            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-xs sm:text-sm" id="einstein-clues"></div>
-            <div class="grid grid-cols-3 gap-2 mb-4 text-xs" id="einstein-grid"></div>
-
-            <div class="flex justify-center">
-                <button onclick="checkEinstein()" class="bg-burgundy text-parchment font-display font-bold px-5 py-2.5 rounded-full shadow hover:-translate-y-0.5 transition w-full sm:w-auto text-xs sm:text-sm active:bg-burgundy/90">✒️ STAMP DEDUCTION</button>
+            <div class="bg-parchment border border-borderSepia rounded p-4 mb-4 text-sm sm:text-base font-bold text-ink" id="einstein-clues"></div>
+            
+            <div class="bg-white border border-borderSepia rounded p-4 mb-4 shadow-sm text-center">
+                <p id="einstein-question" class="font-display font-bold text-burgundy text-lg mb-3"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm" id="einstein-options"></div>
             </div>
+
             <div id="einstein-result" class="mt-3 text-center font-display text-base sm:text-lg font-bold"></div>
         </div>
 
@@ -296,12 +297,16 @@
             ],
             einstein: [
                 {
-                    clues: ["1. The Tea drinker lives in House #2.", "2. The Cat owner lives in the Red house.", "3. House #1 is Green.", "4. The Rabbit lives in the Blue house.", "5. The Milk drinker lives in the Green house."],
-                    solution: [
-                        { color: "Green", drink: "Milk", pet: "Dormouse" },
-                        { color: "Red", drink: "Tea", pet: "Cat" },
-                        { color: "Blue", drink: "Water", pet: "Rabbit" }
-                    ]
+                    clues: [
+                        "1. House #1 is Green.",
+                        "2. The Milk drinker lives in the Green house.",
+                        "3. The Tea drinker lives in House #2.",
+                        "4. The Cat owner lives next door to the Milk drinker.",
+                        "5. The Rabbit lives in the Blue house."
+                    ],
+                    question: "What color is the Cat owner's house, and what do they drink?",
+                    options: ["Red House, Tea", "Blue House, Water", "Green House, Milk", "Red House, Water"],
+                    answer: "Red House, Tea"
                 }
             ],
             causality: [
@@ -359,6 +364,13 @@
             document.getElementById('knights-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('knights-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="text-left p-3 border border-borderSepia bg-white rounded hover:border-gold active:bg-gold/10 font-sans font-semibold w-full">${opt}</button>`).join('');
         }
 
+        function renderEinstein() {
+            const g = activeGames.einstein;
+            document.getElementById('einstein-clues').innerHTML = g.clues.map(c => `<p class="mb-1">${c}</p>`).join('');
+            document.getElementById('einstein-question').innerText = g.question;
+            document.getElementById('einstein-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('einstein-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="p-3 border border-borderSepia bg-parchment rounded hover:border-gold active:bg-gold/10 font-sans font-semibold text-center w-full">${opt}</button>`).join('');
+        }
+
         function renderCausality() {
             const g = activeGames.causality;
             document.getElementById('cause-prompt').innerText = g.prompt;
@@ -369,7 +381,7 @@
         function checkSelection(resultId, selected, correct) {
             const res = document.getElementById(resultId);
             if (selected === correct) res.innerHTML = "<span class='text-green-700'>🟢 FLAWLESS LOGIC!</span>";
-            else res.innerHTML = "<span class='text-burgundy'>🔴 FALLACY DETECTED. Try again.</span>";
+            else res.innerHTML = "<span class='text-burgundy'>🔴 LOGICAL ERROR DETECTED. Try again.</span>";
         }
 
         /* --- RIVER ENGINE --- */
@@ -486,54 +498,6 @@
                 document.getElementById('river-result').innerHTML = `<span class='${res.win ? 'text-green-700' : 'text-burgundy'}'>${res.msg}</span>`;
             }
             renderRiver();
-        }
-
-        /* --- EINSTEIN ENGINE --- */
-        function renderEinstein() {
-            const game = activeGames.einstein;
-            document.getElementById('einstein-clues').innerHTML = game.clues.map(c => `<p class="py-0.5 border-b border-borderSepia/50 last:border-0">${c}</p>`).join('');
-            const optionsColor = ["Color?", "Green", "Red", "Blue"];
-            const optionsDrink = ["Drink?", "Milk", "Tea", "Water"];
-            const optionsPet = ["Pet?", "Cat", "Rabbit", "Dormouse"];
-
-            let gridHtml = '';
-            for (let i = 1; i <= 3; i++) {
-                gridHtml += `
-                    <div class="border border-borderSepia bg-white p-2 rounded text-center shadow-sm">
-                        <span class="font-display font-bold text-burgundy block mb-1">House #${i}</span>
-                        <select id="e-color-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 mb-1 text-[11px] transition-colors">
-                            ${optionsColor.map(o => `<option value="${o}">${o}</option>`).join('')}
-                        </select>
-                        <select id="e-drink-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 mb-1 text-[11px] transition-colors">
-                            ${optionsDrink.map(o => `<option value="${o}">${o}</option>`).join('')}
-                        </select>
-                        <select id="e-pet-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 text-[11px] transition-colors">
-                            ${optionsPet.map(o => `<option value="${o}">${o}</option>`).join('')}
-                        </select>
-                    </div>`;
-            }
-            document.getElementById('einstein-grid').innerHTML = gridHtml;
-        }
-
-        function checkEinstein() {
-            const game = activeGames.einstein;
-            let allCorrect = true;
-            for (let i = 1; i <= 3; i++) {
-                const checkField = (el, val, exp) => {
-                    if (val === exp) {
-                        el.classList.remove('bg-red-100', 'border-red-400');
-                        el.classList.add('bg-green-100', 'border-green-400');
-                    } else {
-                        el.classList.remove('bg-green-100', 'border-green-400');
-                        el.classList.add('bg-red-100', 'border-red-400');
-                        allCorrect = false;
-                    }
-                };
-                checkField(document.getElementById(`e-color-${i}`), document.getElementById(`e-color-${i}`).value, game.solution[i-1].color);
-                checkField(document.getElementById(`e-drink-${i}`), document.getElementById(`e-drink-${i}`).value, game.solution[i-1].drink);
-                checkField(document.getElementById(`e-pet-${i}`), document.getElementById(`e-pet-${i}`).value, game.solution[i-1].pet);
-            }
-            document.getElementById('einstein-result').innerHTML = allCorrect ? "<span class='text-green-700'>🟢 PERFECT DEDUCTION!</span>" : "<span class='text-burgundy'>🔴 ERRORS DETECTED. Adjust your grid.</span>";
         }
 
         /* --- TAXONOMY ENGINE --- */
