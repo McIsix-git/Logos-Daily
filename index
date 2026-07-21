@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Logos Daily — Classical Logic Puzzles</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parchment: '#F8F5EE',
+                        'parchment-card': '#FFFDF7',
+                        ink: '#2B231D',
+                        'ink-muted': '#6E6258',
+                        burgundy: '#7A1C1C',
+                        gold: '#C59B27',
+                        borderSepia: '#E2D9C8',
+                    },
+                    fontFamily: {
+                        display: ['Cinzel', 'serif'],
+                        body: ['EB Garamond', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { user-select: none; -webkit-user-select: none; }
+        .dragging { opacity: 0.5; transform: scale(0.95); }
+        .drag-over { border-color: #7A1C1C !important; background-color: rgba(122, 28, 28, 0.08) !important; }
+        .selected-card { border-color: #7A1C1C !important; box-shadow: 0 0 0 2px #7A1C1C !important; background-color: #FFFDF7 !important; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { border-bottom-color: #7A1C1C; color: #7A1C1C; background-color: #FFFDF7; font-weight: bold; }
+        
+        /* Interactive button styles for river crossing */
+        .river-btn { background-color: #F8F5EE; border: 1px solid #E2D9C8; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .river-btn:active { background-color: #E2D9C8; }
+        .river-btn:disabled { opacity: 0.3; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-parchment text-ink font-body min-h-screen flex flex-col items-center p-2 sm:p-4 antialiased">
+
+    <!-- Header -->
+    <header class="w-full max-w-2xl text-center border-b-2 border-burgundy pb-3 mt-1 sm:mt-4">
+        <h1 class="font-display text-2xl sm:text-5xl font-bold tracking-wider text-burgundy">LOGOS DAILY</h1>
+        <p class="font-body italic text-ink-muted text-xs sm:text-lg mt-0.5">"Curiouser & Curiouser Logic for Sharp Minds"</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="w-full max-w-2xl mt-3 mb-3">
+        <div class="grid grid-cols-4 sm:grid-cols-7 gap-1 text-center font-display text-[10px] sm:text-xs">
+            <button onclick="switchTab('syllogism')" id="tab-syllogism" class="tab-btn active py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🃏 Syllogism</button>
+            <button onclick="switchTab('fallacy')" id="tab-fallacy" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🎩 Fallacy</button>
+            <button onclick="switchTab('knights')" id="tab-knights" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">⚔️ Knights</button>
+            <button onclick="switchTab('river')" id="tab-river" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🌊 River</button>
+            <button onclick="switchTab('einstein')" id="tab-einstein" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🏠 Einstein</button>
+            <button onclick="switchTab('causality')" id="tab-causality" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🍵 Causality</button>
+            <button onclick="switchTab('taxonomy')" id="tab-taxonomy" class="tab-btn py-2 px-1 border-b-2 border-transparent text-ink-muted rounded-t touch-manipulation">🐛 Taxonomy</button>
+        </div>
+    </nav>
+
+    <!-- Main Game Board -->
+    <main class="w-full max-w-2xl bg-parchment-card border border-borderSepia rounded-lg shadow-md p-4 sm:p-6 relative">
+        
+        <!-- GAME 1: SYLLOGISM -->
+        <div id="content-syllogism" class="tab-content active">
+            <div class="text-center mb-4 sm:mb-6">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game I: Formal Logic</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Jabberwocky Chain</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Identify the valid conclusion that logically follows from the premises.</p>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 sm:p-4 mb-4 text-sm sm:text-base font-bold text-ink" id="syl-premises"></div>
+            <div class="grid gap-2 sm:gap-3 mb-6 text-xs sm:text-sm" id="syl-options"></div>
+            <div id="syl-result" class="mt-4 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+        <!-- GAME 2: FALLACY -->
+        <div id="content-fallacy" class="tab-content">
+            <div class="text-center mb-4 sm:mb-6">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game II: Informal Logic</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Mad Hatter's Debate</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Identify the logical fallacy committed in the quote below.</p>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 sm:p-4 mb-4 text-sm sm:text-base italic text-center font-bold text-burgundy" id="fal-quote"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6 text-xs sm:text-sm" id="fal-options"></div>
+            <div id="fal-result" class="mt-4 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+        <!-- GAME 3: KNIGHTS & KNAVES -->
+        <div id="content-knights" class="tab-content">
+            <div class="text-center mb-4 sm:mb-6">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game III: Truth & Deception</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">Tweedledee & Tweedledum</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Knights always tell the truth. Knaves always lie. Determine who is who!</p>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 sm:p-4 mb-4 text-xs sm:text-sm font-body" id="knights-prompt"></div>
+            <div class="grid gap-2 mb-6 text-xs sm:text-sm" id="knights-options"></div>
+            <div id="knights-result" class="mt-4 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+        <!-- GAME 4: RIVER CROSSING -->
+        <div id="content-river" class="tab-content">
+            <div class="text-center mb-4">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game IV: Constraint Logic</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Looking-Glass River</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Boat holds max 2. If Hedgehogs ever outnumber Flamingos on either bank, they eat them!</p>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 bg-parchment border border-borderSepia p-3 rounded-lg text-center min-h-[160px] items-start text-xs sm:text-sm mb-4">
+                
+                <!-- LEFT BANK -->
+                <div class="p-2 border border-borderSepia/60 rounded bg-white flex flex-col h-full justify-between" id="river-left">
+                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs">LEFT BANK</span>
+                    <div id="river-left-items" class="text-lg my-2 min-h-[28px]"></div>
+                    <div class="flex gap-1 justify-center">
+                        <button id="btn-l-f" onclick="moveAnimal('f', 'toBoat')" class="river-btn">Load 🦩</button>
+                        <button id="btn-l-h" onclick="moveAnimal('h', 'toBoat')" class="river-btn">Load 🦔</button>
+                    </div>
+                </div>
+
+                <!-- BOAT -->
+                <div class="p-2 border border-blue-200 rounded bg-blue-50 flex flex-col justify-between h-full">
+                    <span class="font-bold text-blue-800 text-[10px] sm:text-xs" id="river-boat-status">BOAT (LEFT)</span>
+                    <div id="river-boat-items" class="text-lg my-1 min-h-[28px]"></div>
+                    <div class="flex flex-col gap-1 w-full mt-1">
+                        <div class="flex gap-1 justify-center">
+                            <button id="btn-b-f" onclick="moveAnimal('f', 'toBank')" class="river-btn !border-blue-200 !bg-white">Off 🦩</button>
+                            <button id="btn-b-h" onclick="moveAnimal('h', 'toBank')" class="river-btn !border-blue-200 !bg-white">Off 🦔</button>
+                        </div>
+                        <button onclick="crossRiver()" id="btn-cross" class="bg-burgundy text-white px-2 py-1 rounded text-[10px] font-bold shadow hover:bg-burgundy/90 w-full mt-1">CROSS 🌊</button>
+                    </div>
+                </div>
+
+                <!-- RIGHT BANK -->
+                <div class="p-2 border border-borderSepia/60 rounded bg-white flex flex-col h-full justify-between" id="river-right">
+                    <span class="font-bold text-burgundy block text-[10px] sm:text-xs">RIGHT BANK</span>
+                    <div id="river-right-items" class="text-lg my-2 min-h-[28px]"></div>
+                    <div class="flex gap-1 justify-center">
+                        <button id="btn-r-f" onclick="moveAnimal('f', 'toBoat')" class="river-btn">Load 🦩</button>
+                        <button id="btn-r-h" onclick="moveAnimal('h', 'toBoat')" class="river-btn">Load 🦔</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <button onclick="resetRiver()" class="text-xs text-ink-muted underline font-sans">🔄 Restart River</button>
+                <div id="river-result" class="font-display font-bold text-sm sm:text-base text-right max-w-[200px] leading-tight"></div>
+            </div>
+        </div>
+
+        <!-- GAME 5: EINSTEIN'S GRID -->
+        <div id="content-einstein" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game V: Grid Deduction</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Cheshire Row</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1">Green means correct! Red means try again!</p>
+            </div>
+
+            <!-- Clues -->
+            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-xs sm:text-sm" id="einstein-clues"></div>
+
+            <!-- Interactive Grid -->
+            <div class="grid grid-cols-3 gap-2 mb-4 text-xs" id="einstein-grid"></div>
+
+            <div class="flex justify-center">
+                <button onclick="checkEinstein()" class="bg-burgundy text-parchment font-display font-bold px-5 py-2.5 rounded-full shadow hover:-translate-y-0.5 transition w-full sm:w-auto text-xs sm:text-sm active:bg-burgundy/90">✒️ STAMP DEDUCTION</button>
+            </div>
+            <div id="einstein-result" class="mt-3 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+        <!-- GAME 6: CAUSALITY -->
+        <div id="content-causality" class="tab-content">
+            <div class="text-center mb-4 sm:mb-6">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game VI: Mill's Methods</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Duchess's Kitchen</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1" id="cause-prompt"></p>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 sm:p-4 mb-4 text-xs sm:text-sm" id="cause-runs"></div>
+            <div class="grid grid-cols-2 gap-2 mb-6 text-xs sm:text-sm" id="cause-options"></div>
+            <div id="cause-result" class="mt-4 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+        <!-- GAME 7: TAXONOMY -->
+        <div id="content-taxonomy" class="tab-content">
+            <div class="text-center mb-4 sm:mb-6">
+                <span class="font-sans text-[10px] sm:text-xs uppercase tracking-widest text-gold font-semibold">Game VII: Aristotle's Topics</span>
+                <h2 class="font-display text-xl sm:text-2xl font-bold text-ink mt-0.5">The Caterpillar's Taxonomy</h2>
+                <p class="text-ink-muted italic text-xs sm:text-sm mt-1" id="tax-prompt"></p>
+                <p class="font-sans text-[10px] sm:text-xs text-gold font-semibold mt-1">💡 Tip: Tap a card to select it, then tap a bucket to place it!</p>
+            </div>
+            
+            <div class="mb-4 sm:mb-6 p-3 border-2 border-dashed border-borderSepia/60 min-h-[90px] rounded dropzone" id="queue" onclick="handleContainerTap(event, 'queue')" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="grid gap-2 sm:gap-3" id="tax-cards"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6" id="tax-buckets"></div>
+            
+            <div class="flex justify-center">
+                <button onclick="checkTaxonomy()" class="bg-burgundy text-parchment font-display font-bold px-6 py-3 rounded-full shadow hover:-translate-y-0.5 transition w-full sm:w-auto text-xs sm:text-sm active:bg-burgundy/90">✒️ STAMP DEDUCTION</button>
+            </div>
+            <div id="tax-result" class="mt-4 text-center font-display text-base sm:text-lg font-bold"></div>
+        </div>
+
+    </main>
+
+    <!-- Game Logic -->
+    <script>
+        const db = {
+            syllogism: [
+                { premises: ["1. All Borogoves are mimsy creatures.", "2. No mimsy creatures are fierce."], options: ["All Borogoves are fierce.", "No Borogoves are fierce.", "Some mimsy creatures are Borogoves.", "All fierce things are mimsy."], answer: "No Borogoves are fierce." },
+                { premises: ["1. All slithy toves gyre and gumble.", "2. Everything that gyres and gumbles makes a racket."], options: ["All slithy toves make a racket.", "No slithy toves make a racket.", "Some rackets are slithy.", "Gyring is always silent."], answer: "All slithy toves make a racket." },
+                { premises: ["1. All Bread-and-Butterflies have wings of bread.", "2. Some creatures with wings of bread dissolve in tea."], options: ["All Bread-and-Butterflies dissolve in tea.", "No Bread-and-Butterflies dissolve in tea.", "Some Bread-and-Butterflies may dissolve in tea.", "All tea dissolves wings."], answer: "Some Bread-and-Butterflies may dissolve in tea." },
+                { premises: ["1. If it is 6:00 PM, the Hatter is at tea.", "2. The Hatter is not at tea."], options: ["It is 6:00 PM.", "It is not 6:00 PM.", "The Hatter is asleep.", "Tea is finished."], answer: "It is not 6:00 PM." },
+                { premises: ["1. No playing cards can withstand the wind.", "2. The Queen of Hearts is a playing card."], options: ["The Queen of Hearts causes wind.", "The Queen can withstand the wind.", "The Queen cannot withstand the wind.", "All winds are playing cards."], answer: "The Queen cannot withstand the wind." }
+            ],
+            fallacy: [
+                { quote: "Either you drink tea with us right this second, or you hate friendship altogether!", options: ["Ad Hominem", "False Dilemma", "Straw Man", "Appeal to Authority"], answer: "False Dilemma" },
+                { quote: "You claim my soup has too much pepper? Well, you are just an uneducated child who knows nothing of fine cooking!", options: ["Ad Hominem", "Appeal to Ignorance", "Red Herring", "False Dilemma"], answer: "Ad Hominem" },
+                { quote: "The Queen said the sky is green, and as sovereign ruler, her word is supreme, so the sky must be green!", options: ["Appeal to Authority", "Slippery Slope", "Hasty Generalization", "Circular Reasoning"], answer: "Appeal to Authority" },
+                { quote: "Alice: 'What time is it?' Hatter: 'Why is a raven like a writing desk?'", options: ["Ad Hominem", "False Cause", "Red Herring", "Appeal to Emotion"], answer: "Red Herring" },
+                { quote: "If we don't behead the Knave for stealing tarts today, tomorrow he will steal the crown, and the kingdom will fall!", options: ["Slippery Slope", "Straw Man", "Bandwagon", "False Dilemma"], answer: "Slippery Slope" }
+            ],
+            knights: [
+                { prompt: "Tweedledee says: 'At least one of us is a Knave.' What are Tweedledee and Tweedledum?", options: ["Dee is Knight, Dum is Knave", "Both are Knaves", "Dee is Knave, Dum is Knight", "Both are Knights"], answer: "Dee is Knight, Dum is Knave" },
+                { prompt: "Tweedledee says: 'We are both Knaves.' What are Tweedledee and Tweedledum?", options: ["Dee is Knave, Dum is Knight", "Both are Knaves", "Both are Knights", "Dee is Knight, Dum is Knave"], answer: "Dee is Knave, Dum is Knight" },
+                { prompt: "Tweedledee says: 'I am a Knave, or Tweedledum is a Knight.' What are they?", options: ["Both are Knights", "Both are Knaves", "Dee is Knave, Dum is Knight", "Dee is Knight, Dum is Knave"], answer: "Both are Knights" }
+            ],
+            einstein: [
+                {
+                    clues: ["1. The Tea drinker lives in House #2.", "2. The Cat owner lives in the Red house.", "3. House #1 is Green.", "4. The Rabbit lives in the Blue house.", "5. The Milk drinker lives in the Green house."],
+                    solution: [
+                        { color: "Green", drink: "Milk", pet: "Dormouse" },
+                        { color: "Red", drink: "Tea", pet: "Cat" },
+                        { color: "Blue", drink: "Water", pet: "Rabbit" }
+                    ]
+                },
+                {
+                    clues: ["1. The Dormouse owner drinks Water.", "2. House #3 is Red.", "3. The Tea drinker lives in the Blue house.", "4. House #1 is Green.", "5. The Cat owner lives in the Green house."],
+                    solution: [
+                        { color: "Green", drink: "Milk", pet: "Cat" },
+                        { color: "Blue", drink: "Tea", pet: "Rabbit" },
+                        { color: "Red", drink: "Water", pet: "Dormouse" }
+                    ]
+                }
+            ],
+            causality: [
+                { prompt: "Why does the Cheshire Cat keep vanishing?", runs: ["Run 1: Pepper, Duchess Singing, Crown -> Cat Visible", "Run 2: Pepper, Duchess Silent, Crown -> Cat Vanishes", "Run 3: Milk Spilled, Duchess Silent, Crown -> Cat Vanishes"], options: ["Pepper", "Duchess Silent", "Crown", "Milk Spilled"], answer: "Duchess Silent" },
+                { prompt: "Why does the Pocket-Watch keep stopping?", runs: ["Run 1: Wind Key, Butter applied, Tea spilled -> Watch Stops", "Run 2: Wind Key, Butter applied, No Tea -> Watch Stops", "Run 3: Wind Key, No Butter, No Tea -> Watch Runs"], options: ["Wind Key", "Butter applied", "Tea spilled", "No Tea"], answer: "Butter applied" },
+                { prompt: "Why does the Dormouse suddenly wake up?", runs: ["Run 1: Hot Tea, Loud Singing, Hatter's Hat -> Remains Asleep", "Run 2: No Tea, Loud Singing, Hatter's Hat -> Remains Asleep", "Run 3: Hot Tea, Pinched Nose, Hatter's Hat -> Wakes Up"], options: ["Hot Tea", "Loud Singing", "Hatter's Hat", "Pinched Nose"], answer: "Pinched Nose" }
+            ],
+            taxonomy: [
+                { prompt: "Sort the observations regarding a Vorpal Sword and a Snark.", cards: [{ id: "t1", text: "A Vorpal Sword is a blade that goes snicker-snack.", type: "definition" }, { id: "t2", text: "A Snark is far harder to catch than a Sword.", type: "degree" }], buckets: [{ id: "definition", icon: "✒️", name: "DEFINITION", desc: "Essence & Genus" }, { id: "degree", icon: "⚖️", name: "DEGREE", desc: "Greater / Lesser" }] },
+                { prompt: "Sort the observations regarding a Flamingo Mallet and a Hedgehog Ball.", cards: [{ id: "t3", text: "Striking the Hedgehog too firmly causes it to walk away.", type: "cause" }, { id: "t4", text: "The opposite of an uncooperative Hedgehog is a Stone Sphere.", type: "opposition" }], buckets: [{ id: "cause", icon: "⚡", name: "CAUSE & EFFECT", desc: "Origins / Results" }, { id: "opposition", icon: "☯️", name: "OPPOSITION", desc: "Contraries" }] }
+            ]
+        };
+
+        let activeGames = {};
+        let selectedCardEl = null;
+
+        window.onload = () => {
+            activeGames.syllogism = db.syllogism[Math.floor(Math.random() * db.syllogism.length)];
+            activeGames.fallacy = db.fallacy[Math.floor(Math.random() * db.fallacy.length)];
+            activeGames.knights = db.knights[Math.floor(Math.random() * db.knights.length)];
+            activeGames.einstein = db.einstein[Math.floor(Math.random() * db.einstein.length)];
+            activeGames.causality = db.causality[Math.floor(Math.random() * db.causality.length)];
+            activeGames.taxonomy = db.taxonomy[Math.floor(Math.random() * db.taxonomy.length)];
+
+            renderSyllogism();
+            renderFallacy();
+            renderKnights();
+            resetRiver();
+            renderEinstein();
+            renderCausality();
+            renderTaxonomy();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('content-' + tabId).classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function renderSyllogism() {
+            const g = activeGames.syllogism;
+            document.getElementById('syl-premises').innerHTML = g.premises.map(p => `<p class="mb-1">${p}</p>`).join('');
+            document.getElementById('syl-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('syl-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="text-left p-3 border border-borderSepia bg-white rounded hover:border-gold active:bg-gold/10 font-sans w-full">${opt}</button>`).join('');
+        }
+
+        function renderFallacy() {
+            const g = activeGames.fallacy;
+            document.getElementById('fal-quote').innerText = `"${g.quote}"`;
+            document.getElementById('fal-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('fal-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="p-3 border border-borderSepia bg-white rounded hover:border-gold active:bg-gold/10 font-sans font-semibold text-center w-full">${opt}</button>`).join('');
+        }
+
+        function renderKnights() {
+            const g = activeGames.knights;
+            document.getElementById('knights-prompt').innerHTML = `<p class="font-bold text-burgundy mb-1">Scenario:</p><p class="italic text-base">"${g.prompt}"</p>`;
+            document.getElementById('knights-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('knights-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="text-left p-3 border border-borderSepia bg-white rounded hover:border-gold active:bg-gold/10 font-sans font-semibold w-full">${opt}</button>`).join('');
+        }
+
+        function renderCausality() {
+            const g = activeGames.causality;
+            document.getElementById('cause-prompt').innerText = g.prompt;
+            document.getElementById('cause-runs').innerHTML = g.runs.map(r => `<p class="border-b border-borderSepia last:border-0 py-1.5">${r}</p>`).join('');
+            document.getElementById('cause-options').innerHTML = [...g.options].sort(()=>Math.random()-0.5).map(opt => `<button onclick="checkSelection('cause-result', '${opt.replace(/'/g, "\\'")}', '${g.answer.replace(/'/g, "\\'")}')" class="p-3 border border-borderSepia bg-white rounded hover:border-gold active:bg-gold/10 font-sans font-semibold w-full">${opt}</button>`).join('');
+        }
+
+        function checkSelection(resultId, selected, correct) {
+            const res = document.getElementById(resultId);
+            if (selected === correct) res.innerHTML = "<span class='text-green-700'>🟢 FLAWLESS LOGIC!</span>";
+            else res.innerHTML = "<span class='text-burgundy'>🔴 FALLACY DETECTED. Try again.</span>";
+        }
+
+        let riverState = {};
+        
+        function resetRiver() {
+            riverState = { left: { f: 3, h: 3 }, right: { f: 0, h: 0 }, boat: { f: 0, h: 0 }, boatPos: 'left', gameOver: false };
+            document.getElementById('river-result').innerText = "";
+            renderRiver();
+        }
+
+        function renderRiver() {
+            document.getElementById('river-left-items').innerHTML = '🦩'.repeat(riverState.left.f) + '🦔'.repeat(riverState.left.h);
+            document.getElementById('river-right-items').innerHTML = '🦩'.repeat(riverState.right.f) + '🦔'.repeat(riverState.right.h);
+            
+            const boatContents = '🦩'.repeat(riverState.boat.f) + '🦔'.repeat(riverState.boat.h);
+            document.getElementById('river-boat-items').innerHTML = boatContents || '<span class="text-[10px] text-ink-muted italic">Empty</span>';
+            document.getElementById('river-boat-status').innerText = `BOAT (${riverState.boatPos.toUpperCase()})`;
+
+            const boatTotal = riverState.boat.f + riverState.boat.h;
+            
+            document.getElementById('btn-l-f').disabled = (riverState.boatPos !== 'left' || riverState.left.f === 0 || boatTotal >= 2 || riverState.gameOver);
+            document.getElementById('btn-l-h').disabled = (riverState.boatPos !== 'left' || riverState.left.h === 0 || boatTotal >= 2 || riverState.gameOver);
+            
+            document.getElementById('btn-r-f').disabled = (riverState.boatPos !== 'right' || riverState.right.f === 0 || boatTotal >= 2 || riverState.gameOver);
+            document.getElementById('btn-r-h').disabled = (riverState.boatPos !== 'right' || riverState.right.h === 0 || boatTotal >= 2 || riverState.gameOver);
+            
+            document.getElementById('btn-b-f').disabled = (riverState.boat.f === 0 || riverState.gameOver);
+            document.getElementById('btn-b-h').disabled = (riverState.boat.h === 0 || riverState.gameOver);
+
+            document.getElementById('btn-cross').disabled = (boatTotal === 0 || riverState.gameOver);
+        }
+
+        function moveAnimal(type, dir) {
+            if (riverState.gameOver) return;
+            const bank = riverState.boatPos;
+            
+            if (dir === 'toBoat' && (riverState.boat.f + riverState.boat.h < 2)) {
+                if (riverState[bank][type] > 0) {
+                    riverState[bank][type]--;
+                    riverState.boat[type]++;
+                }
+            } else if (dir === 'toBank') {
+                if (riverState.boat[type] > 0) {
+                    riverState.boat[type]--;
+                    riverState[bank][type]++;
+                }
+            }
+            renderRiver();
+        }
+
+        function crossRiver() {
+            if (riverState.gameOver || (riverState.boat.f + riverState.boat.h) === 0) return;
+            
+            riverState.boatPos = riverState.boatPos === 'left' ? 'right' : 'left';
+            renderRiver();
+
+            const checkBank = (bankStr) => {
+                const f = riverState[bankStr].f + (riverState.boatPos === bankStr ? riverState.boat.f : 0);
+                const h = riverState[bankStr].h + (riverState.boatPos === bankStr ? riverState.boat.h : 0);
+                return (f > 0 && h > f);
+            };
+
+            if (checkBank('left') || checkBank('right')) {
+                riverState.gameOver = true;
+                document.getElementById('river-result').innerHTML = "<span class='text-burgundy'>🔴 HEDGEHOGS ATE FLAMINGOS!</span>";
+                renderRiver();
+            } else if (riverState.right.f === 3 && riverState.right.h === 3 && riverState.boatPos === 'right') {
+                riverState.gameOver = true;
+                document.getElementById('river-result').innerHTML = "<span class='text-green-700'>🟢 SAFELY CROSSED!</span>";
+                renderRiver();
+            }
+        }
+
+        function renderEinstein() {
+            const game = activeGames.einstein;
+            document.getElementById('einstein-clues').innerHTML = game.clues.map(c => `<p class="py-0.5 border-b border-borderSepia/50 last:border-0">${c}</p>`).join('');
+
+            const optionsColor = ["Color?", "Green", "Red", "Blue"];
+            const optionsDrink = ["Drink?", "Milk", "Tea", "Water"];
+            const optionsPet = ["Pet?", "Cat", "Rabbit", "Dormouse"];
+
+            let gridHtml = '';
+            for (let i = 1; i <= 3; i++) {
+                gridHtml += `
+                    <div class="border border-borderSepia bg-white p-2 rounded text-center shadow-sm">
+                        <span class="font-display font-bold text-burgundy block mb-1">House #${i}</span>
+                        <select id="e-color-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 mb-1 text-[11px] transition-colors">
+                            ${optionsColor.map(o => `<option value="${o}">${o}</option>`).join('')}
+                        </select>
+                        <select id="e-drink-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 mb-1 text-[11px] transition-colors">
+                            ${optionsDrink.map(o => `<option value="${o}">${o}</option>`).join('')}
+                        </select>
+                        <select id="e-pet-${i}" class="w-full bg-parchment border border-borderSepia rounded p-1 text-[11px] transition-colors">
+                            ${optionsPet.map(o => `<option value="${o}">${o}</option>`).join('')}
+                        </select>
+                    </div>`;
+            }
+            document.getElementById('einstein-grid').innerHTML = gridHtml;
+        }
+
+        function checkEinstein() {
+            const game = activeGames.einstein;
+            let allCorrect = true;
+            
+            for (let i = 1; i <= 3; i++) {
+                const c = document.getElementById(`e-color-${i}`);
+                const d = document.getElementById(`e-drink-${i}`);
+                const p = document.getElementById(`e-pet-${i}`);
+                const expected = game.solution[i-1];
+
+                const checkField = (el, val, exp) => {
+                    if (val === exp) {
+                        el.classList.remove('bg-red-100', 'border-red-400');
+                        el.classList.add('bg-green-100', 'border-green-400');
+                    } else {
+                        el.classList.remove('bg-green-100', 'border-green-400');
+                        el.classList.add('bg-red-100', 'border-red-400');
+                        allCorrect = false;
+                    }
+                };
+
+                checkField(c, c.value, expected.color);
+                checkField(d, d.value, expected.drink);
+                checkField(p, p.value, expected.pet);
+            }
+            
+            const res = document.getElementById('einstein-result');
+            if (allCorrect) {
+                res.innerHTML = "<span class='text-green-700'>🟢 PERFECT DEDUCTION!</span>";
+            } else {
+                res.innerHTML = "<span class='text-burgundy'>🔴 ERRORS DETECTED. Adjust your grid.</span>";
+            }
+        }
+
+        function renderTaxonomy() {
+            const g = activeGames.taxonomy;
+            document.getElementById('tax-prompt').innerText = g.prompt;
+            
+            document.getElementById('tax-cards').innerHTML = g.cards.map(c => 
+                `<div id="${c.id}" class="tax-card p-2 bg-white border border-borderSepia rounded shadow-sm text-xs cursor-pointer active:scale-95 transition-transform" draggable="true" ondragstart="drag(event)" onclick="selectCard(this)">${c.text}</div>`
+            ).join('');
+
+            document.getElementById('tax-buckets').innerHTML = g.buckets.map(b => 
+                `<div id="${b.id}" class="bucket p-3 border-2 border-dashed border-borderSepia/60 rounded bg-parchment flex flex-col items-center min-h-[100px] cursor-pointer" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="handleContainerTap(event, '${b.id}')">
+                    <span class="text-2xl mb-1">${b.icon}</span>
+                    <span class="font-display font-bold text-[10px] sm:text-xs text-burgundy">${b.name}</span>
+                    <span class="text-[9px] sm:text-[10px] text-ink-muted italic mb-2">${b.desc}</span>
+                    <div class="bucket-content w-full flex flex-col gap-2"></div>
+                </div>`
+            ).join('');
+        }
+
+        function allowDrop(ev) { 
+            ev.preventDefault(); 
+            ev.currentTarget.classList.add('drag-over'); 
+        }
+
+        function drag(ev) { 
+            ev.dataTransfer.setData("text", ev.target.id); 
+            ev.target.classList.add('dragging');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            const data = ev.dataTransfer.getData("text");
+            const el = document.getElementById(data);
+            if (el) {
+                el.classList.remove('dragging');
+                const targetContent = ev.currentTarget.classList.contains('bucket') ? ev.currentTarget.querySelector('.bucket-content') : document.getElementById('tax-cards');
+                targetContent.appendChild(el);
+            }
+        }
+        
+        function selectCard(el) {
+            if (selectedCardEl) selectedCardEl.classList.remove('selected-card');
+            if (selectedCardEl === el) {
+                selectedCardEl = null;
+                return;
+            }
+            selectedCardEl = el;
+            selectedCardEl.classList.add('selected-card');
+        }
+
+        function handleContainerTap(ev, containerId) {
+            if (!selectedCardEl) return;
+            let target;
+            if (containerId === 'queue') {
+                target = document.getElementById('tax-cards');
+            } else {
+                target = document.getElementById(containerId).querySelector('.bucket-content');
+            }
+            if (target && selectedCardEl.parentElement !== target) {
+                target.appendChild(selectedCardEl);
+                selectedCardEl.classList.remove('selected-card');
+                selectedCardEl = null;
+            }
+        }
+
+        function checkTaxonomy() {
+            const g = activeGames.taxonomy;
+            let allCorrect = true;
+            
+            g.cards.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (!el) return;
+                const parentBucket = el.closest('.bucket');
+                
+                if (!parentBucket || parentBucket.id !== c.type) {
+                    allCorrect = false;
+                    el.classList.add('border-burgundy', 'bg-red-50');
+                    setTimeout(() => el.classList.remove('border-burgundy', 'bg-red-50'), 1500);
+                } else {
+                    el.classList.add('border-green-500', 'bg-green-50');
+                    setTimeout(() => el.classList.remove('border-green-500', 'bg-green-50'), 1500);
+                }
+            });
+
+            const res = document.getElementById('tax-result');
+            const unassigned = document.getElementById('tax-cards').children.length > 0;
+            
+            if (unassigned) {
+                res.innerHTML = "<span class='text-burgundy'>🔴 SORT ALL CARDS FIRST.</span>";
+            } else if (allCorrect) {
+                res.innerHTML = "<span class='text-green-700'>🟢 CATEGORICAL SUCCESS!</span>";
+            } else {
+                res.innerHTML = "<span class='text-burgundy'>🔴 TAXONOMY ERROR DETECTED.</span>";
+            }
+        }
+    </script>
+</body>
+</html>
