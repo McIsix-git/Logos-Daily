@@ -1,29 +1,682 @@
-const db = {
-    // ... (Keep games 1-3 the same)
-    riverDef: { 
-        id: "farmer", title: "The Farmer's Dilemma", 
-        desc: "Boat holds Farmer + 1. Don't leave Fox (🦊) with Duck (🦆), or Duck with Corn (🌽)!", 
-        entities: { p: "👨‍🌾", f: "🦊", g: "🦆", b: "🌽" }, 
-        start: { p: 1, f: 1, g: 1, b: 1 }, maxBoat: 2, mustHave: 'p', 
-        validateCross: (state) => {
-            const checkBank = (bankStr) => {
-                const p = state[bankStr].p + (state.boatPos === bankStr ? state.boat.p : 0);
-                const f = state[bankStr].f + (state.boatPos === bankStr ? state.boat.f : 0);
-                const g = state[bankStr].g + (state.boatPos === bankStr ? state.boat.g : 0);
-                const b = state[bankStr].b + (state.boatPos === bankStr ? state.boat.b : 0);
-                if (p === 0) { 
-                    if (f > 0 && g > 0) return "FOX ATE DUCK!"; 
-                    if (g > 0 && b > 0) return "DUCK ATE CORN!"; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Logos Daily — Classical Logic Puzzles</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parchment: '#F8F5EE',
+                        'parchment-card': '#FFFDF7',
+                        ink: '#2B231D',
+                        'ink-muted': '#6E6258',
+                        burgundy: '#7A1C1C',
+                        gold: '#C59B27',
+                        borderSepia: '#E2D9C8',
+                    },
+                    fontFamily: {
+                        display: ['Cinzel', 'serif'],
+                        body: ['EB Garamond', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
                 }
-                return null;
-            };
-            if (checkBank('left')) return { over: true, win: false, msg: checkBank('left') };
-            if (checkBank('right')) return { over: true, win: false, msg: checkBank('right') };
-            if (state.right.p === 1 && state.right.f === 1 && state.right.g === 1 && state.right.b === 1) return { over: true, win: true, msg: "SAFELY CROSSED!" };
-            return { over: false };
+            }
         }
-    },
-    alchemist: { potions: ["🔴", "🔵", "🟢", "🟡", "🟣", "🟠"], answer: ["🔵", "🟡", "🔴", "🟢"] },
-    euler: { symbols: ["♈", "♉", "♊", "♋"], grid: [[1,2,3,4],[3,4,1,2],[4,3,2,1],[2,1,4,3]], hide: [[0,1],[1,3],[2,0],[3,2]] },
-    cipher: { quote: "I THINK THEREFORE I AM", encoded: "O ZNOTQ ZNKXKLUXK O GS" }
-};
+    </script>
+    <style>
+        body { user-select: none; -webkit-user-select: none; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { flex-shrink: 0; }
+        .tab-btn.active { border-bottom-color: #7A1C1C; color: #7A1C1C; background-color: #FFFDF7; font-weight: bold; }
+        
+        .game-solved-overlay { pointer-events: none; opacity: 0.65; }
+        .euler-sym-selected { border-color: #7A1C1C !important; background-color: #7A1C1C !important; color: white !important; }
+    </style>
+</head>
+<body class="bg-parchment text-ink font-body min-h-screen flex flex-col items-center antialiased pb-10">
+
+    <!-- Sticky Scoreboard Header -->
+    <div class="sticky top-0 w-full bg-parchment-card border-b border-borderSepia shadow-sm z-50 px-4 py-2 flex justify-between items-center max-w-2xl text-xs sm:text-sm font-sans">
+        <div class="flex flex-col">
+            <span class="font-bold text-burgundy" id="ui-rank">The Wandering Novice</span>
+            <span class="text-ink-muted"><span id="ui-points">0</span> pts</span>
+        </div>
+        <div class="flex flex-col items-end">
+            <span class="font-bold text-gold" id="ui-streak">🔥 0-Day Streak</span>
+            <div id="ui-progress" class="flex gap-1 mt-1 text-[8px]">
+                <!-- Progress dots injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="w-full max-w-2xl text-center pb-2 mt-4">
+        <h1 class="font-display text-2xl sm:text-5xl font-bold tracking-wider text-burgundy">LOGOS DAILY</h1>
+        <p class="font-body italic text-ink-muted text-xs sm:text-lg mt-0.5">"Curiouser & Curiouser Logic for Sharp Minds"</p>
+    </header>
+
+    <!-- Scrollable Navigation Tabs -->
+    <nav class="w-full max-w-2xl mb-3 border-b-2 border-borderSepia">
+        <div class="flex overflow-x-auto hide-scroll text-center font-display text-[10px] sm:text-xs px-2" id="nav-tabs">
+            <button onclick="switchTab('syllogism')" id="tab-syllogism" class="tab-btn active py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🃏 Syllogism</button>
+            <button onclick="switchTab('fallacy')" id="tab-fallacy" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🎩 Fallacy</button>
+            <button onclick="switchTab('knights')" id="tab-knights" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">⚔️ Knights</button>
+            <button onclick="switchTab('river')" id="tab-river" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🌊 River</button>
+            <button onclick="switchTab('einstein')" id="tab-einstein" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🏠 Einstein</button>
+            <button onclick="switchTab('causality')" id="tab-causality" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🍵 Causality</button>
+            <button onclick="switchTab('taxonomy')" id="tab-taxonomy" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🐛 Taxonomy</button>
+            <button onclick="switchTab('alchemist')" id="tab-alchemist" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">⚗️ Mastermind</button>
+            <button onclick="switchTab('euler')" id="tab-euler" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">🔢 Euler Grid</button>
+            <button onclick="switchTab('cipher')" id="tab-cipher" class="tab-btn py-2 px-3 border-b-2 border-transparent text-ink-muted rounded-t">📜 Cipher</button>
+        </div>
+    </nav>
+
+    <!-- Main Game Board -->
+    <main class="w-full max-w-2xl bg-parchment-card border border-borderSepia rounded-lg shadow-md p-4 sm:p-6 relative mx-2">
+        
+        <!-- GAME 1: SYLLOGISM -->
+        <div id="content-syllogism" class="tab-content active">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game I: Formal Logic</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Jabberwocky Chain</h2>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-syllogism">Reward: 100 pts</div>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-sm font-bold" id="syl-premises"></div>
+            <div class="grid gap-2 text-sm" id="syl-options"></div>
+            <div id="res-syllogism" class="mt-4 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 2: FALLACY -->
+        <div id="content-fallacy" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game II: Informal Logic</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Mad Hatter's Debate</h2>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-fallacy">Reward: 100 pts</div>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-sm italic font-bold text-burgundy text-center" id="fal-quote"></div>
+            <div class="grid grid-cols-2 gap-2 text-sm" id="fal-options"></div>
+            <div id="res-fallacy" class="mt-4 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 3: KNIGHTS -->
+        <div id="content-knights" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game III: Truth & Deception</span>
+                <h2 class="font-display text-xl font-bold text-ink">Tweedledee & Tweedledum</h2>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-knights">Reward: 100 pts</div>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-sm" id="knights-prompt"></div>
+            <div class="grid gap-2 text-sm" id="knights-options"></div>
+            <div id="res-knights" class="mt-4 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 4: RIVER CROSSING -->
+        <div id="content-river" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game IV: Constraint Logic</span>
+                <h2 id="river-title" class="font-display text-xl font-bold text-ink"></h2>
+                <p id="river-desc" class="text-ink-muted italic text-xs mt-1"></p>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-river">Reward: 100 pts</div>
+            </div>
+            <div class="flex gap-2 bg-parchment border border-borderSepia p-3 rounded-lg text-center min-h-[160px] relative overflow-hidden mb-2">
+                <div class="flex-1 p-2 border border-borderSepia/60 rounded bg-white flex flex-col items-center justify-center" id="river-left">
+                    <span class="font-bold text-burgundy block text-[10px] mb-2">LEFT BANK</span>
+                    <div id="river-left-items" class="text-2xl flex flex-wrap justify-center gap-1 select-none min-h-[32px]"></div>
+                </div>
+                <div class="flex-[1.5] relative bg-blue-50/50 border-x border-blue-200 p-2 flex flex-col justify-center rounded min-h-[120px]">
+                    <div class="absolute w-full h-[2px] bg-blue-200/60 top-1/2 -translate-y-1/2"></div>
+                    <div class="relative w-full h-[60px] flex items-center">
+                        <div id="boat-wrapper" class="absolute transition-all duration-700 ease-in-out bg-white border-2 border-blue-300 rounded-full px-2 py-1 flex items-center justify-center gap-2 min-w-[75px] z-10" style="left: 2%; transform: translateX(0%);">
+                            <span class="text-2xl transition-transform duration-500" id="boat-icon" style="transform: scaleX(-1);">🛶</span>
+                            <div id="river-boat-items" class="flex gap-1 text-2xl select-none min-h-[32px] items-center"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-center z-20">
+                        <button onclick="crossRiver()" id="btn-cross" class="bg-burgundy text-white px-4 py-1.5 rounded text-[10px] font-bold shadow hover:bg-burgundy/90">CROSS 🌊</button>
+                    </div>
+                </div>
+                <div class="flex-1 p-2 border border-borderSepia/60 rounded bg-white flex flex-col items-center justify-center" id="river-right">
+                    <span class="font-bold text-burgundy block text-[10px] mb-2">RIGHT BANK</span>
+                    <div id="river-right-items" class="text-2xl flex flex-wrap justify-center gap-1 select-none min-h-[32px]"></div>
+                </div>
+            </div>
+            <div class="flex justify-start text-xs text-ink-muted underline">
+                <button onclick="resetRiver()">🔄 Restart Bank Crossing</button>
+            </div>
+            <div id="res-river" class="mt-2 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 5: EINSTEIN -->
+        <div id="content-einstein" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game V: Grid Deduction</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Cheshire Row</h2>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-einstein">Reward: 100 pts</div>
+            </div>
+            <div class="bg-parchment border border-borderSepia rounded p-4 mb-4 text-sm font-bold" id="einstein-clues"></div>
+            <div class="bg-white border border-borderSepia rounded p-4 mb-4 text-center shadow-sm">
+                <p id="einstein-question" class="font-display font-bold text-burgundy text-lg mb-3"></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm" id="einstein-options"></div>
+            </div>
+            <div id="res-einstein" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 6: CAUSALITY -->
+        <div id="content-causality" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VI: Mill's Methods</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Duchess's Kitchen</h2>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-causality">Reward: 100 pts</div>
+            </div>
+            <p class="text-ink-muted italic text-sm text-center mb-2" id="cause-prompt"></p>
+            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-sm" id="cause-runs"></div>
+            <div class="grid grid-cols-2 gap-2 text-sm" id="cause-options"></div>
+            <div id="res-causality" class="mt-4 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 7: TAXONOMY (Flashcard System) -->
+        <div id="content-taxonomy" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VII: Rapid Taxonomy</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Caterpillar's Categories</h2>
+                <p class="text-ink-muted italic text-xs mt-1">Classify each logic statement into its correct category.</p>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-taxonomy">Reward: 100 pts</div>
+            </div>
+            
+            <div class="bg-parchment border-2 border-borderSepia rounded-lg p-5 mb-4 text-center shadow-inner min-h-[110px] flex flex-col justify-center items-center">
+                <span class="text-xs text-gold font-bold mb-1" id="tax-card-num">Statement 1 of 3</span>
+                <p class="font-body text-base font-bold text-ink" id="tax-card-text"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button onclick="classifyTaxonomy('definition')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
+                    <span class="block text-xl mb-1">✒️</span>
+                    <span class="font-bold text-xs text-burgundy block">DEFINITION</span>
+                    <span class="text-[10px] text-ink-muted">Essence & Nature</span>
+                </button>
+                <button onclick="classifyTaxonomy('degree')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
+                    <span class="block text-xl mb-1">⚖️</span>
+                    <span class="font-bold text-xs text-burgundy block">DEGREE</span>
+                    <span class="text-[10px] text-ink-muted">Greater vs. Lesser</span>
+                </button>
+            </div>
+            <div id="res-taxonomy" class="mt-2 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 8: MASTERMIND -->
+        <div id="content-alchemist" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VIII: Mastermind</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Alchemist's Sequence</h2>
+                <p class="text-ink-muted italic text-xs mt-1">Tap slots to cycle colors.<br>⚫ = Right Color & Spot | ⚪ = Right Color, Wrong Spot</p>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-alchemist">Reward: 100 pts</div>
+            </div>
+            
+            <div class="flex flex-col items-center gap-3 bg-parchment border border-borderSepia rounded p-4 mb-4">
+                <div class="flex gap-3 text-4xl" id="alch-slots">
+                    <button onclick="cyclePotion(0)" class="w-12 h-12 flex items-center justify-center bg-white border-2 border-borderSepia rounded-lg shadow-sm" id="alch-0">🧪</button>
+                    <button onclick="cyclePotion(1)" class="w-12 h-12 flex items-center justify-center bg-white border-2 border-borderSepia rounded-lg shadow-sm" id="alch-1">🧪</button>
+                    <button onclick="cyclePotion(2)" class="w-12 h-12 flex items-center justify-center bg-white border-2 border-borderSepia rounded-lg shadow-sm" id="alch-2">🧪</button>
+                    <button onclick="cyclePotion(3)" class="w-12 h-12 flex items-center justify-center bg-white border-2 border-borderSepia rounded-lg shadow-sm" id="alch-3">🧪</button>
+                </div>
+                <button onclick="checkAlchemist()" class="bg-burgundy text-white font-bold px-6 py-2 rounded-full text-sm mt-1 shadow hover:bg-burgundy/90">BREW ⚗️</button>
+            </div>
+            
+            <div class="text-center font-mono text-sm max-h-32 overflow-y-auto" id="alch-history"></div>
+            <div id="res-alchemist" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 9: EULER GRID (Palette System) -->
+        <div id="content-euler" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game IX: Latin Square</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Euler Grid</h2>
+                <p class="text-ink-muted italic text-xs mt-1">Select a symbol below, then tap empty cells to place it.</p>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-euler">Reward: 100 pts</div>
+            </div>
+            
+            <!-- Palette -->
+            <div class="flex justify-center gap-2 mb-3" id="euler-palette">
+                <button onclick="selectEulerSymbol(1, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♈</button>
+                <button onclick="selectEulerSymbol(2, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♉</button>
+                <button onclick="selectEulerSymbol(3, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♊</button>
+                <button onclick="selectEulerSymbol(4, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♋</button>
+                <button onclick="selectEulerSymbol(0, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-xs font-bold text-ink-muted euler-btn">🧹 Eraser</button>
+            </div>
+
+            <div class="flex justify-center mb-4">
+                <div class="grid grid-cols-4 gap-1 bg-ink p-1 rounded-lg w-[200px]" id="euler-grid">
+                    <!-- JS Injected -->
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <button onclick="checkEuler()" class="bg-burgundy text-white font-bold px-6 py-2 rounded-full text-sm shadow hover:bg-burgundy/90">CHECK GRID 🔢</button>
+            </div>
+            <div id="res-euler" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+        <!-- GAME 10: CIPHER -->
+        <div id="content-cipher" class="tab-content">
+            <div class="text-center mb-3">
+                <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game X: Substitution</span>
+                <h2 class="font-display text-xl font-bold text-ink">The Diplomat's Cipher</h2>
+                <p class="text-ink-muted italic text-xs mt-1">Decode the quote. Each letter maps to a unique substitute.</p>
+                <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-cipher">Reward: 100 pts</div>
+            </div>
+            
+            <div class="bg-parchment border border-borderSepia rounded p-4 mb-4 flex flex-wrap justify-center gap-x-4 gap-y-6" id="cipher-box">
+                <!-- JS injected words -->
+            </div>
+            
+            <div class="flex justify-center">
+                <button onclick="checkCipher()" class="bg-burgundy text-white font-bold px-6 py-2 rounded-full text-sm shadow hover:bg-burgundy/90">DECODE 📜</button>
+            </div>
+            <div id="res-cipher" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
+        </div>
+
+    </main>
+
+    <!-- Share Modal Overlay -->
+    <div id="share-modal" class="fixed inset-0 bg-ink/80 flex justify-center items-center z-50 hidden">
+        <div class="bg-parchment-card p-6 rounded-lg text-center max-w-sm w-full mx-4 border-2 border-gold shadow-2xl">
+            <h2 class="font-display text-2xl font-bold text-burgundy mb-1">ALL PUZZLES SOLVED!</h2>
+            <p class="text-gold font-bold text-sm mb-4">+250 Point Daily Bonus Earned</p>
+            
+            <div class="bg-parchment border border-borderSepia p-3 rounded text-left font-mono text-xs mb-4 whitespace-pre leading-relaxed" id="share-text-preview"></div>
+            
+            <button onclick="shareResults()" class="w-full bg-burgundy text-white font-display font-bold py-3 rounded mb-2 hover:bg-burgundy/90 transition">📤 SHARE RESULTS</button>
+            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="w-full text-ink-muted text-xs underline">Close Window</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME DATABASE ---
+        const db = {
+            syllogism: { premises: ["1. All Borogoves are mimsy creatures.", "2. No mimsy creatures are fierce."], options: ["All Borogoves are fierce.", "No Borogoves are fierce.", "Some mimsy creatures are Borogoves.", "All fierce things are mimsy."], answer: "No Borogoves are fierce." },
+            fallacy: { quote: "Either you drink tea with us right this second, or you hate friendship altogether!", options: ["Ad Hominem", "False Dilemma", "Straw Man", "Appeal to Authority"], answer: "False Dilemma" },
+            knights: { prompt: "Tweedledee says: 'Tweedledum is a Knave.' Tweedledum says: 'We are opposites.' What are they?", options: ["Dee is Knave, Dum is Knight", "Both are Knights", "Both are Knaves", "Dee is Knight, Dum is Knave"], answer: "Dee is Knave, Dum is Knight" },
+            einstein: { clues: ["1. House #1 is Green.", "2. The Milk drinker lives in the Green house.", "3. The Tea drinker lives in House #2.", "4. The Cat owner lives next door to the Milk drinker.", "5. The Rabbit lives in the Blue house."], question: "What color is the Cat owner's house, and what do they drink?", options: ["Red House, Tea", "Blue House, Water", "Green House, Milk", "Red House, Water"], answer: "Red House, Tea" },
+            causality: { prompt: "Why does the Cheshire Cat keep vanishing?", runs: ["Run 1: Pepper, Duchess Singing, Crown -> Cat Visible", "Run 2: Pepper, Duchess Silent, Crown -> Cat Vanishes", "Run 3: Milk Spilled, Duchess Silent, Crown -> Cat Vanishes"], options: ["Pepper", "Duchess Silent", "Crown", "Milk Spilled"], answer: "Duchess Silent" },
+            taxonomy: [
+                { statement: "A Vorpal Sword is a blade that goes snicker-snack.", type: "definition" },
+                { statement: "A Snark is far harder to catch than a Sword.", type: "degree" },
+                { statement: "A Jabberwock is a creature with eyes of flame.", type: "definition" }
+            ],
+            riverDef: { 
+                id: "farmer", title: "The Farmer's Dilemma", 
+                desc: "Boat holds Farmer + 1. Don't leave Fox (🦊) with Duck (🦆), or Duck with Corn (🌽)!", 
+                entities: { p: "👨‍🌾", f: "🦊", g: "🦆", b: "🌽" }, 
+                start: { p: 1, f: 1, g: 1, b: 1 }, maxBoat: 2, mustHave: 'p', 
+                validateCross: (state) => {
+                    const checkBank = (bankStr) => {
+                        const p = state[bankStr].p + (state.boatPos === bankStr ? state.boat.p : 0);
+                        const f = state[bankStr].f + (state.boatPos === bankStr ? state.boat.f : 0);
+                        const g = state[bankStr].g + (state.boatPos === bankStr ? state.boat.g : 0);
+                        const b = state[bankStr].b + (state.boatPos === bankStr ? state.boat.b : 0);
+                        if (p === 0) { 
+                            if (f > 0 && g > 0) return "FOX ATE DUCK!"; 
+                            if (g > 0 && b > 0) return "DUCK ATE CORN!"; 
+                        }
+                        return null;
+                    };
+                    let errL = checkBank('left'); if (errL) return { over: true, win: false, msg: errL };
+                    let errR = checkBank('right'); if (errR) return { over: true, win: false, msg: errR };
+                    if (state.right.p === 1 && state.right.f === 1 && state.right.g === 1 && state.right.b === 1) return { over: true, win: true, msg: "SAFELY CROSSED!" };
+                    return { over: false };
+                }
+            },
+            alchemist: { potions: ["🔴", "🔵", "🟢", "🟡", "🟣", "🟠"], answer: ["🔵", "🟡", "🔴", "🟢"] },
+            euler: { symbols: ["", "♈", "♉", "♊", "♋"], grid: [[1,2,3,4],[3,4,1,2],[4,3,2,1],[2,1,4,3]], hide: [[0,1],[1,3],[2,0],[3,2]] },
+            cipher: { quote: "I THINK THEREFORE I AM", encoded: "O ZNOTQ ZNKXKLUXK O GS" }
+        };
+
+        const GAME_KEYS = ['syllogism', 'fallacy', 'knights', 'river', 'einstein', 'causality', 'taxonomy', 'alchemist', 'euler', 'cipher'];
+        const EMOJIS = { syllogism: '🃏', fallacy: '🎩', knights: '⚔️', river: '🌊', einstein: '🏠', causality: '🍵', taxonomy: '🐛', alchemist: '⚗️', euler: '🔢', cipher: '📜' };
+
+        // --- GLOBAL STATE ---
+        let state = {
+            points: 0, streak: 1, lastDate: new Date().toDateString(), bonusClaimed: false,
+            games: {}
+        };
+
+        function initApp() {
+            let saved = localStorage.getItem('logosState');
+            if (saved) {
+                let parsed = JSON.parse(saved);
+                if (parsed.lastDate !== new Date().toDateString()) {
+                    let isConsecutive = (new Date() - new Date(parsed.lastDate)) < 172800000;
+                    state.points = parsed.points;
+                    state.streak = isConsecutive ? parsed.streak + 1 : 1;
+                    GAME_KEYS.forEach(k => state.games[k] = { solved: false, attempts: 0 });
+                } else {
+                    state = parsed;
+                }
+            } else {
+                GAME_KEYS.forEach(k => state.games[k] = { solved: false, attempts: 0 });
+            }
+            saveState();
+            renderAllGames();
+            updateScoreboard();
+        }
+
+        function saveState() {
+            localStorage.setItem('logosState', JSON.stringify(state));
+            updateScoreboard();
+        }
+
+        function getRank(pts) {
+            if (pts < 500) return "The Wandering Novice";
+            if (pts < 1500) return "The Inquisitive Scholar";
+            if (pts < 4000) return "The Sharp Logician";
+            return "The Grand Master of Logos";
+        }
+
+        function getPotentialReward(attempts) {
+            const pts = [100, 75, 50, 25];
+            return pts[Math.min(attempts, 3)];
+        }
+
+        function updateScoreboard() {
+            document.getElementById('ui-points').innerText = state.points;
+            document.getElementById('ui-rank').innerText = getRank(state.points);
+            document.getElementById('ui-streak').innerText = `🔥 ${state.streak}-Day Streak`;
+            
+            let progressHtml = "";
+            let allSolved = true;
+            GAME_KEYS.forEach(k => {
+                let g = state.games[k];
+                if (!g.solved) allSolved = false;
+                let dot = !g.solved ? '⚪' : (g.attempts === 0 ? '🟢' : (g.attempts === 1 ? '🟡' : '🔴'));
+                progressHtml += `<span>${dot}</span>`;
+                
+                let tab = document.getElementById(`tab-${k}`);
+                if (g.solved && !tab.innerText.includes('✓')) tab.innerText = `✓ ${tab.innerText}`;
+                if (g.solved) document.getElementById(`content-${k}`).classList.add('game-solved-overlay');
+
+                // Update potential reward indicators
+                let potEl = document.getElementById(`pot-${k}`);
+                if (potEl) potEl.innerText = g.solved ? 'Solved ✓' : `Reward: ${getPotentialReward(g.attempts)} pts`;
+            });
+            document.getElementById('ui-progress').innerHTML = progressHtml;
+
+            if (allSolved && !state.bonusClaimed) {
+                state.points += 250;
+                state.bonusClaimed = true;
+                saveState();
+                showShareModal();
+            }
+        }
+
+        function attemptSolve(gameId, isCorrect, resultDivId, successMsg, failMsg) {
+            if (state.games[gameId].solved) return; 
+
+            let g = state.games[gameId];
+            let resDiv = document.getElementById(resultDivId);
+
+            if (isCorrect) {
+                let earned = getPotentialReward(g.attempts);
+                g.solved = true;
+                state.points += earned;
+                resDiv.innerHTML = `<span class='text-green-700'>🟢 ${successMsg} (+${earned} pts)</span>`;
+            } else {
+                g.attempts++;
+                resDiv.innerHTML = `<span class='text-burgundy'>🔴 ${failMsg}</span>`;
+            }
+            saveState();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('content-' + tabId).classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // --- RENDER ALL PUZZLES ---
+        function renderAllGames() {
+            // Syllogism
+            const syl = db.syllogism;
+            document.getElementById('syl-premises').innerHTML = syl.premises.map(p => `<p>${p}</p>`).join('');
+            document.getElementById('syl-options').innerHTML = syl.options.map(o => `<button onclick="attemptSolve('syllogism', ${o===syl.answer}, 'res-syllogism', 'FLAWLESS LOGIC!', 'LOGICAL ERROR.')" class="p-3 border border-borderSepia bg-white rounded hover:border-gold w-full text-left font-sans">${o}</button>`).join('');
+            
+            // Fallacy
+            const fal = db.fallacy;
+            document.getElementById('fal-quote').innerText = `"${fal.quote}"`;
+            document.getElementById('fal-options').innerHTML = fal.options.map(o => `<button onclick="attemptSolve('fallacy', ${o===fal.answer}, 'res-fallacy', 'SPOT ON!', 'TRY AGAIN.')" class="p-3 border border-borderSepia bg-white rounded hover:border-gold font-bold font-sans">${o}</button>`).join('');
+
+            // Knights
+            const kn = db.knights;
+            document.getElementById('knights-prompt').innerHTML = `"${kn.prompt}"`;
+            document.getElementById('knights-options').innerHTML = kn.options.map(o => `<button onclick="attemptSolve('knights', ${o===kn.answer}, 'res-knights', 'TRUTH REVEALED!', 'DECEPTION DETECTED.')" class="p-3 border border-borderSepia bg-white rounded hover:border-gold font-bold font-sans">${o}</button>`).join('');
+
+            // Einstein
+            const ein = db.einstein;
+            document.getElementById('einstein-clues').innerHTML = ein.clues.map(c => `<p>${c}</p>`).join('');
+            document.getElementById('einstein-question').innerText = ein.question;
+            document.getElementById('einstein-options').innerHTML = ein.options.map(o => `<button onclick="attemptSolve('einstein', ${o===ein.answer}, 'res-einstein', 'PERFECT DEDUCTION!', 'FLAWED LOGIC.')" class="p-3 border border-borderSepia bg-parchment rounded hover:border-gold font-sans font-bold">${o}</button>`).join('');
+
+            // Causality
+            const cau = db.causality;
+            document.getElementById('cause-prompt').innerText = cau.prompt;
+            document.getElementById('cause-runs').innerHTML = cau.runs.map(r => `<p class="border-b border-borderSepia py-1">${r}</p>`).join('');
+            document.getElementById('cause-options').innerHTML = cau.options.map(o => `<button onclick="attemptSolve('causality', ${o===cau.answer}, 'res-causality', 'CAUSE ISOLATED!', 'SPURIOUS CORRELATION.')" class="p-3 border border-borderSepia bg-white rounded font-bold font-sans">${o}</button>`).join('');
+
+            resetRiver();
+            renderTaxonomy();
+            renderEuler();
+            renderCipher();
+        }
+
+        // --- GAME 7: TAXONOMY (Flashcard System) ---
+        let taxIdx = 0;
+        let taxScore = true;
+
+        function renderTaxonomy() {
+            if (taxIdx < db.taxonomy.length) {
+                document.getElementById('tax-card-num').innerText = `Statement ${taxIdx + 1} of ${db.taxonomy.length}`;
+                document.getElementById('tax-card-text').innerText = `"${db.taxonomy[taxIdx].statement}"`;
+            }
+        }
+
+        function classifyTaxonomy(chosenType) {
+            if (state.games.taxonomy.solved) return;
+
+            if (db.taxonomy[taxIdx].type !== chosenType) {
+                taxScore = false;
+            }
+
+            taxIdx++;
+            if (taxIdx < db.taxonomy.length) {
+                renderTaxonomy();
+            } else {
+                attemptSolve('taxonomy', taxScore, 'res-taxonomy', 'ALL STATEMENTS ACCURATELY CLASSIFIED!', 'CLASSIFICATION ERROR DETECTED.');
+                if (!taxScore) {
+                    taxIdx = 0;
+                    taxScore = true;
+                    renderTaxonomy();
+                }
+            }
+        }
+
+        // --- GAME 4: RIVER CROSSING ---
+        let riverState = {};
+        function resetRiver() {
+            const d = db.riverDef;
+            riverState = { left: {...d.start}, right: {p:0,f:0,g:0,b:0}, boat: {p:0,f:0,g:0,b:0}, boatPos: 'left' };
+            document.getElementById('river-title').innerText = d.title; 
+            document.getElementById('river-desc').innerText = d.desc;
+            document.getElementById('res-river').innerText = "";
+            renderRiverUI();
+        }
+        function renderRiverUI() {
+            const d = db.riverDef;
+            const b = (obj, isB) => Object.entries(d.entities).flatMap(([k,v]) => Array(obj[k]).fill(`<span class="cursor-pointer hover:scale-110" onclick="moveAnimal('${k}','${isB?'toBank':'toBoat'}')">${v}</span>`)).join('');
+            document.getElementById('river-left-items').innerHTML = b(riverState.left, false);
+            document.getElementById('river-right-items').innerHTML = b(riverState.right, false);
+            document.getElementById('river-boat-items').innerHTML = b(riverState.boat, true) || '<span class="text-[10px] text-ink-muted italic">Empty</span>';
+            const w = document.getElementById('boat-wrapper'), ic = document.getElementById('boat-icon');
+            if(riverState.boatPos==='left') { w.style.left='2%'; w.style.transform='translateX(0%)'; ic.style.transform='scaleX(-1)'; }
+            else { w.style.left='98%'; w.style.transform='translateX(-100%)'; ic.style.transform='scaleX(1)'; }
+        }
+        function moveAnimal(type, dir) {
+            let bc = Object.values(riverState.boat).reduce((a,b)=>a+b,0);
+            if(dir==='toBoat' && bc<2 && riverState[riverState.boatPos][type]>0) { riverState[riverState.boatPos][type]--; riverState.boat[type]++; }
+            else if(dir==='toBank' && riverState.boat[type]>0) { riverState.boat[type]--; riverState[riverState.boatPos][type]++; }
+            renderRiverUI();
+        }
+        function crossRiver() {
+            if(riverState.boat.p === 0) return; // Needs farmer to row
+            riverState.boatPos = riverState.boatPos==='left' ? 'right' : 'left';
+            let res = db.riverDef.validateCross(riverState);
+            renderRiverUI();
+            if(res.over) attemptSolve('river', res.win, 'res-river', res.msg, res.msg);
+        }
+
+        // --- GAME 8: MASTERMIND ---
+        let alchState = [0, 0, 0, 0];
+        function cyclePotion(idx) {
+            alchState[idx] = (alchState[idx] + 1) % 6;
+            document.getElementById(`alch-${idx}`).innerText = db.alchemist.potions[alchState[idx]];
+        }
+        function checkAlchemist() {
+            let guess = alchState.map(i => db.alchemist.potions[i]);
+            let ans = [...db.alchemist.answer];
+            let black = 0, white = 0;
+            
+            guess.forEach((p, i) => { if(p === ans[i]) { black++; ans[i] = null; guess[i] = null; }});
+            guess.forEach((p, i) => { if(p && ans.includes(p)) { white++; ans[ans.indexOf(p)] = null; }});
+            
+            let hist = document.getElementById('alch-history');
+            let pegs = Array(black).fill('⚫').join('') + Array(white).fill('⚪').join('');
+            if(!pegs) pegs = "❌ None";
+            
+            hist.innerHTML = `<div class="mb-1">${alchState.map(i=>db.alchemist.potions[i]).join('')} ➔ ${pegs}</div>` + hist.innerHTML;
+            attemptSolve('alchemist', black === 4, 'res-alchemist', 'TRANSMUTATION COMPLETE!', 'INCORRECT MIXTURE.');
+        }
+
+        // --- GAME 9: EULER GRID (Palette Engine) ---
+        let eulState = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+        let selectedEulerSym = 1;
+
+        function selectEulerSymbol(symVal, btnEl) {
+            selectedEulerSym = symVal;
+            document.querySelectorAll('.euler-btn').forEach(b => b.classList.remove('euler-sym-selected'));
+            btnEl.classList.add('euler-sym-selected');
+        }
+
+        function renderEuler() {
+            let html = "";
+            for(let r=0; r<4; r++) {
+                for(let c=0; c<4; c++) {
+                    let isHidden = db.euler.hide.some(arr => arr[0]===r && arr[1]===c);
+                    if(isHidden) {
+                        html += `<button onclick="placeEulerSymbol(${r},${c})" id="eu-${r}-${c}" class="w-10 h-10 bg-white border border-gray-400 rounded text-lg font-bold flex items-center justify-center cursor-pointer"></button>`;
+                    } else {
+                        eulState[r][c] = db.euler.grid[r][c];
+                        html += `<div class="w-10 h-10 bg-parchment text-ink-muted border border-gray-500 rounded text-lg font-bold flex items-center justify-center">${db.euler.symbols[db.euler.grid[r][c]]}</div>`;
+                    }
+                }
+            }
+            document.getElementById('euler-grid').innerHTML = html;
+            selectEulerSymbol(1, document.querySelectorAll('.euler-btn')[0]);
+        }
+
+        function placeEulerSymbol(r, c) {
+            eulState[r][c] = selectedEulerSym;
+            document.getElementById(`eu-${r}-${c}`).innerText = db.euler.symbols[selectedEulerSym];
+        }
+
+        function checkEuler() {
+            let valid = true;
+            for(let i=0; i<4; i++) {
+                let rSet = new Set(), cSet = new Set();
+                for(let j=0; j<4; j++) {
+                    if(eulState[i][j]===0 || eulState[j][i]===0) valid = false;
+                    rSet.add(eulState[i][j]); cSet.add(eulState[j][i]);
+                }
+                if(rSet.size !== 4 || cSet.size !== 4) valid = false;
+            }
+            attemptSolve('euler', valid, 'res-euler', 'SQUARE BALANCED!', 'GRID CONFLICT DETECTED.');
+        }
+
+        // --- GAME 10: CIPHER ENGINE ---
+        function renderCipher() {
+            let words = db.cipher.encoded.split(' ');
+            let html = words.map(w => {
+                return `<div class="flex gap-1">` + w.split('').map(char => {
+                    return `<div class="flex flex-col items-center">
+                        <span class="font-bold text-ink-muted text-sm">${char}</span>
+                        <input type="text" maxlength="1" class="w-6 h-8 text-center bg-white border-b-2 border-borderSepia focus:border-burgundy outline-none font-bold text-lg uppercase" data-orig="${char}">
+                    </div>`;
+                }).join('') + `</div>`;
+            }).join('');
+            document.getElementById('cipher-box').innerHTML = html;
+            
+            let inputs = document.querySelectorAll('#cipher-box input');
+            inputs.forEach((inp, idx) => {
+                inp.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                    let char = e.target.getAttribute('data-orig');
+                    inputs.forEach(other => { if(other.getAttribute('data-orig')===char) other.value = e.target.value; });
+                    if(e.target.value && idx < inputs.length-1) inputs[idx+1].focus();
+                });
+            });
+        }
+
+        function checkCipher() {
+            let inputs = document.querySelectorAll('#cipher-box input');
+            let valid = true;
+            
+            let idx = 0;
+            for(let w of db.cipher.encoded.split(' ')) {
+                for(let c of w) {
+                    if(inputs[idx].value !== db.cipher.quote[idx]) valid = false;
+                    idx++;
+                }
+                idx++; 
+            }
+            attemptSolve('cipher', valid, 'res-cipher', 'MESSAGE DECODED!', 'INCORRECT TRANSLATION.');
+        }
+
+        // --- SHARE SYSTEM ---
+        function showShareModal() {
+            let text = `Logos Daily\n🏅 ${state.points} pts | Rank: ${getRank(state.points)}\n🔥 ${state.streak}-Day Streak\n\n`;
+            GAME_KEYS.forEach(k => {
+                let p = state.games[k];
+                let dot = p.attempts === 0 ? '🟢' : (p.attempts === 1 ? '🟡' : '🔴');
+                let tries = p.attempts + 1;
+                text += `${EMOJIS[k]} ${dot} (${tries} ${tries === 1 ? 'try' : 'tries'})\n`;
+            });
+            text += `\nPlay at: yourgithublink.com`;
+            
+            document.getElementById('share-text-preview').innerText = text;
+            document.getElementById('share-modal').classList.remove('hidden');
+        }
+
+        function shareResults() {
+            const text = document.getElementById('share-text-preview').innerText;
+            if (navigator.share) {
+                navigator.share({ title: 'Logos Daily', text: text }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("Copied to clipboard!");
+                });
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
