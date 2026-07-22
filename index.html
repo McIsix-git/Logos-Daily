@@ -173,49 +173,69 @@
             <div id="res-einstein" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
         </div>
 
-        <!-- GAME 6: CAUSALITY -->
+        <!-- GAME 6: CAUSALITY (Redesigned UI) -->
         <div id="content-causality" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VI: Mill's Methods</span>
                 <h2 class="font-display text-xl font-bold text-ink">The Duchess's Kitchen</h2>
                 <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-causality">Reward: 100 pts</div>
             </div>
-            <p class="text-ink-muted italic text-sm text-center mb-2" id="cause-prompt"></p>
-            <div class="bg-parchment border border-borderSepia rounded p-3 mb-4 text-sm" id="cause-runs"></div>
+            <p class="text-ink-muted italic text-sm text-center mb-4" id="cause-prompt"></p>
+            
+            <div class="space-y-2 mb-6" id="cause-runs">
+                <!-- JS injected lab notes -->
+            </div>
+            
             <div class="grid grid-cols-2 gap-2 text-sm" id="cause-options"></div>
             <div id="res-causality" class="mt-4 text-center font-display text-base font-bold min-h-[24px]"></div>
         </div>
 
-        <!-- GAME 7: TAXONOMY (Flashcard System) -->
+        <!-- GAME 7: TAXONOMY (Flashcard System with Timer) -->
         <div id="content-taxonomy" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VII: Rapid Taxonomy</span>
                 <h2 class="font-display text-xl font-bold text-ink">The Caterpillar's Categories</h2>
-                <p class="text-ink-muted italic text-xs mt-1">Classify each logic statement into its correct category.</p>
+                <p class="text-ink-muted italic text-xs mt-1">Classify each logic statement before the timer runs out!</p>
                 <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-taxonomy">Reward: 100 pts</div>
             </div>
             
-            <div class="bg-parchment border-2 border-borderSepia rounded-lg p-5 mb-4 text-center shadow-inner min-h-[110px] flex flex-col justify-center items-center">
-                <span class="text-xs text-gold font-bold mb-1" id="tax-card-num">Statement 1 of 3</span>
-                <p class="font-body text-base font-bold text-ink" id="tax-card-text"></p>
+            <!-- Start Screen Overlay -->
+            <div id="tax-start-screen" class="bg-parchment border-2 border-borderSepia rounded-lg p-6 mb-4 text-center shadow-inner flex flex-col justify-center items-center">
+                <p class="font-body text-sm text-ink mb-4">You have <b>7 seconds</b> per statement. Are you ready?</p>
+                <button onclick="startTaxonomyGame()" class="bg-burgundy text-white font-bold px-6 py-2 rounded-full text-sm shadow hover:bg-burgundy/90">START TIMED ROUND ⏱️</button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <button onclick="classifyTaxonomy('definition')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
-                    <span class="block text-xl mb-1">✒️</span>
-                    <span class="font-bold text-xs text-burgundy block">DEFINITION</span>
-                    <span class="text-[10px] text-ink-muted">Essence & Nature</span>
-                </button>
-                <button onclick="classifyTaxonomy('degree')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
-                    <span class="block text-xl mb-1">⚖️</span>
-                    <span class="font-bold text-xs text-burgundy block">DEGREE</span>
-                    <span class="text-[10px] text-ink-muted">Greater vs. Lesser</span>
-                </button>
+            <!-- Active Game Screen -->
+            <div id="tax-game-screen" class="hidden">
+                <div class="bg-parchment border-2 border-borderSepia rounded-lg p-5 mb-4 text-center shadow-inner min-h-[110px] flex flex-col justify-center items-center relative overflow-hidden">
+                    
+                    <!-- Timer Bar -->
+                    <div id="tax-timer-container" class="absolute top-0 left-0 w-full h-1.5 bg-gray-200">
+                        <div id="tax-timer-bar" class="h-full bg-burgundy w-full transition-all duration-100 ease-linear"></div>
+                    </div>
+
+                    <span class="text-xs text-gold font-bold mb-1 mt-2" id="tax-card-num">Statement 1 of 3</span>
+                    <p class="font-body text-base font-bold text-ink" id="tax-card-text"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="classifyTaxonomy('definition')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
+                        <span class="block text-xl mb-1">✒️</span>
+                        <span class="font-bold text-xs text-burgundy block">DEFINITION</span>
+                        <span class="text-[10px] text-ink-muted">Essence & Nature</span>
+                    </button>
+                    <button onclick="classifyTaxonomy('degree')" class="p-3 bg-white border-2 border-borderSepia rounded-lg hover:border-burgundy active:bg-burgundy/10 text-center font-sans">
+                        <span class="block text-xl mb-1">⚖️</span>
+                        <span class="font-bold text-xs text-burgundy block">DEGREE</span>
+                        <span class="text-[10px] text-ink-muted">Greater vs. Lesser</span>
+                    </button>
+                </div>
             </div>
+            
             <div id="res-taxonomy" class="mt-2 text-center font-display text-base font-bold min-h-[24px]"></div>
         </div>
 
-        <!-- GAME 8: MASTERMIND -->
+        <!-- GAME 8: MASTERMIND (Forgiving Scoring) -->
         <div id="content-alchemist" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game VIII: Mastermind</span>
@@ -238,27 +258,28 @@
             <div id="res-alchemist" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
         </div>
 
-        <!-- GAME 9: EULER GRID (Palette System) -->
+        <!-- GAME 9: EULER GRID (5x5 Advanced Mode) -->
         <div id="content-euler" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game IX: Latin Square</span>
                 <h2 class="font-display text-xl font-bold text-ink">The Euler Grid</h2>
-                <p class="text-ink-muted italic text-xs mt-1">Select a symbol below, then tap empty cells to place it.</p>
+                <p class="text-ink-muted italic text-xs mt-1">Select a symbol below, then tap empty cells to place it.<br>No symbol may repeat in any row or column.</p>
                 <div class="text-burgundy font-sans font-bold text-xs mt-1" id="pot-euler">Reward: 100 pts</div>
             </div>
             
             <!-- Palette -->
-            <div class="flex justify-center gap-2 mb-3" id="euler-palette">
-                <button onclick="selectEulerSymbol(1, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♈</button>
-                <button onclick="selectEulerSymbol(2, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♉</button>
-                <button onclick="selectEulerSymbol(3, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♊</button>
-                <button onclick="selectEulerSymbol(4, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-lg font-bold euler-btn">♋</button>
-                <button onclick="selectEulerSymbol(0, this)" class="w-10 h-10 border-2 border-borderSepia bg-white rounded text-xs font-bold text-ink-muted euler-btn">🧹 Eraser</button>
+            <div class="flex justify-center gap-1.5 mb-3" id="euler-palette">
+                <button onclick="selectEulerSymbol(1, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-base sm:text-lg font-bold euler-btn">♈</button>
+                <button onclick="selectEulerSymbol(2, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-base sm:text-lg font-bold euler-btn">♉</button>
+                <button onclick="selectEulerSymbol(3, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-base sm:text-lg font-bold euler-btn">♊</button>
+                <button onclick="selectEulerSymbol(4, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-base sm:text-lg font-bold euler-btn">♋</button>
+                <button onclick="selectEulerSymbol(5, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-base sm:text-lg font-bold euler-btn">♌</button>
+                <button onclick="selectEulerSymbol(0, this)" class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-borderSepia bg-white rounded text-xs font-bold text-ink-muted euler-btn">🧹</button>
             </div>
 
             <div class="flex justify-center mb-4">
-                <div class="grid grid-cols-4 gap-1 bg-ink p-1 rounded-lg w-[200px]" id="euler-grid">
-                    <!-- JS Injected -->
+                <div class="grid grid-cols-5 gap-1 bg-ink p-1 rounded-lg w-[240px]" id="euler-grid">
+                    <!-- JS Injected 5x5 -->
                 </div>
             </div>
             <div class="flex justify-center">
@@ -267,7 +288,7 @@
             <div id="res-euler" class="mt-3 text-center font-display text-base font-bold min-h-[24px]"></div>
         </div>
 
-        <!-- GAME 10: CIPHER -->
+        <!-- GAME 10: CIPHER (Bug Fixed) -->
         <div id="content-cipher" class="tab-content">
             <div class="text-center mb-3">
                 <span class="font-sans text-[10px] uppercase tracking-widest text-gold font-semibold">Game X: Substitution</span>
@@ -308,7 +329,19 @@
             fallacy: { quote: "Either you drink tea with us right this second, or you hate friendship altogether!", options: ["Ad Hominem", "False Dilemma", "Straw Man", "Appeal to Authority"], answer: "False Dilemma" },
             knights: { prompt: "Tweedledee says: 'Tweedledum is a Knave.' Tweedledum says: 'We are opposites.' What are they?", options: ["Dee is Knave, Dum is Knight", "Both are Knights", "Both are Knaves", "Dee is Knight, Dum is Knave"], answer: "Dee is Knave, Dum is Knight" },
             einstein: { clues: ["1. House #1 is Green.", "2. The Milk drinker lives in the Green house.", "3. The Tea drinker lives in House #2.", "4. The Cat owner lives next door to the Milk drinker.", "5. The Rabbit lives in the Blue house."], question: "What color is the Cat owner's house, and what do they drink?", options: ["Red House, Tea", "Blue House, Water", "Green House, Milk", "Red House, Water"], answer: "Red House, Tea" },
-            causality: { prompt: "Why does the Cheshire Cat keep vanishing?", runs: ["Run 1: Pepper, Duchess Singing, Crown -> Cat Visible", "Run 2: Pepper, Duchess Silent, Crown -> Cat Vanishes", "Run 3: Milk Spilled, Duchess Silent, Crown -> Cat Vanishes"], options: ["Pepper", "Duchess Silent", "Crown", "Milk Spilled"], answer: "Duchess Silent" },
+            
+            // Redesigned Causality Structure
+            causality: { 
+                prompt: "Why does the Cheshire Cat keep vanishing?", 
+                runs: [
+                    { vars: ["🧂 Pepper", "🎵 Singing", "👑 Crown"], outIcon: "🐱 Visible", out: true },
+                    { vars: ["🧂 Pepper", "🤫 Silent", "👑 Crown"], outIcon: "💨 Vanished", out: false },
+                    { vars: ["🥛 Spilled Milk", "🤫 Silent", "👑 Crown"], outIcon: "💨 Vanished", out: false }
+                ],
+                options: ["Pepper", "Duchess Silent", "Crown", "Spilled Milk"], 
+                answer: "Duchess Silent" 
+            },
+            
             taxonomy: [
                 { statement: "A Vorpal Sword is a blade that goes snicker-snack.", type: "definition" },
                 { statement: "A Snark is far harder to catch than a Sword.", type: "degree" },
@@ -338,7 +371,26 @@
                 }
             },
             alchemist: { potions: ["🔴", "🔵", "🟢", "🟡", "🟣", "🟠"], answer: ["🔵", "🟡", "🔴", "🟢"] },
-            euler: { symbols: ["", "♈", "♉", "♊", "♋"], grid: [[1,2,3,4],[3,4,1,2],[4,3,2,1],[2,1,4,3]], hide: [[0,1],[1,3],[2,0],[3,2]] },
+            
+            // 5x5 Euler Grid - Much Harder
+            euler: { 
+                symbols: ["", "♈", "♉", "♊", "♋", "♌"], 
+                grid: [
+                    [1,2,3,4,5],
+                    [2,3,4,5,1],
+                    [3,4,5,1,2],
+                    [4,5,1,2,3],
+                    [5,1,2,3,4]
+                ], 
+                hide: [
+                    [0,0], [0,2], [0,3], [0,4], 
+                    [1,1], [1,2], [1,3], [1,4], 
+                    [2,0], [2,1], [2,3], [2,4], 
+                    [3,0], [3,1], [3,2], [3,4], 
+                    [4,0], [4,1], [4,2], [4,3]
+                ] 
+            },
+            
             cipher: { quote: "I THINK THEREFORE I AM", encoded: "O ZNOTQ ZNKXKLUXK O GS" }
         };
 
@@ -383,7 +435,13 @@
             return "The Grand Master of Logos";
         }
 
-        function getPotentialReward(attempts) {
+        // Updated dynamically for Mastermind vs normal games
+        function getPotentialReward(gameId, attempts) {
+            if (gameId === 'alchemist') {
+                let pts = 100;
+                for(let i = 1; i <= attempts; i++) pts -= i; // 100, 99, 97, 94...
+                return Math.max(pts, 0);
+            }
             const pts = [100, 75, 50, 25];
             return pts[Math.min(attempts, 3)];
         }
@@ -405,9 +463,8 @@
                 if (g.solved && !tab.innerText.includes('✓')) tab.innerText = `✓ ${tab.innerText}`;
                 if (g.solved) document.getElementById(`content-${k}`).classList.add('game-solved-overlay');
 
-                // Update potential reward indicators
                 let potEl = document.getElementById(`pot-${k}`);
-                if (potEl) potEl.innerText = g.solved ? 'Solved ✓' : `Reward: ${getPotentialReward(g.attempts)} pts`;
+                if (potEl) potEl.innerText = g.solved ? 'Solved ✓' : `Reward: ${getPotentialReward(k, g.attempts)} pts`;
             });
             document.getElementById('ui-progress').innerHTML = progressHtml;
 
@@ -426,7 +483,7 @@
             let resDiv = document.getElementById(resultDivId);
 
             if (isCorrect) {
-                let earned = getPotentialReward(g.attempts);
+                let earned = getPotentialReward(gameId, g.attempts);
                 g.solved = true;
                 state.points += earned;
                 resDiv.innerHTML = `<span class='text-green-700'>🟢 ${successMsg} (+${earned} pts)</span>`;
@@ -467,33 +524,65 @@
             document.getElementById('einstein-question').innerText = ein.question;
             document.getElementById('einstein-options').innerHTML = ein.options.map(o => `<button onclick="attemptSolve('einstein', ${o===ein.answer}, 'res-einstein', 'PERFECT DEDUCTION!', 'FLAWED LOGIC.')" class="p-3 border border-borderSepia bg-parchment rounded hover:border-gold font-sans font-bold">${o}</button>`).join('');
 
-            // Causality
+            // Causality (Redesigned)
             const cau = db.causality;
             document.getElementById('cause-prompt').innerText = cau.prompt;
-            document.getElementById('cause-runs').innerHTML = cau.runs.map(r => `<p class="border-b border-borderSepia py-1">${r}</p>`).join('');
+            document.getElementById('cause-runs').innerHTML = cau.runs.map((r) => `
+                <div class="flex items-center justify-between bg-white border border-borderSepia p-2 rounded shadow-sm">
+                    <div class="flex flex-wrap gap-1">
+                        ${r.vars.map(v => `<span class="bg-parchment px-2 py-0.5 text-[10px] font-bold rounded border border-borderSepia text-ink">${v}</span>`).join('')}
+                    </div>
+                    <div class="text-xs font-bold ${r.out ? 'text-green-700' : 'text-burgundy'} ml-2 flex-shrink-0 flex items-center gap-1">
+                        <span class="text-lg">➔</span> ${r.outIcon}
+                    </div>
+                </div>
+            `).join('');
             document.getElementById('cause-options').innerHTML = cau.options.map(o => `<button onclick="attemptSolve('causality', ${o===cau.answer}, 'res-causality', 'CAUSE ISOLATED!', 'SPURIOUS CORRELATION.')" class="p-3 border border-borderSepia bg-white rounded font-bold font-sans">${o}</button>`).join('');
 
             resetRiver();
-            renderTaxonomy();
             renderEuler();
             renderCipher();
         }
 
-        // --- GAME 7: TAXONOMY (Flashcard System) ---
+        // --- GAME 7: TAXONOMY (Timed Flashcards) ---
         let taxIdx = 0;
         let taxScore = true;
+        let taxTimer;
+        let taxTimeLeft = 100; // Percentage
+
+        function startTaxonomyGame() {
+            document.getElementById('tax-start-screen').classList.add('hidden');
+            document.getElementById('tax-game-screen').classList.remove('hidden');
+            renderTaxonomy();
+        }
 
         function renderTaxonomy() {
             if (taxIdx < db.taxonomy.length) {
                 document.getElementById('tax-card-num').innerText = `Statement ${taxIdx + 1} of ${db.taxonomy.length}`;
                 document.getElementById('tax-card-text').innerText = `"${db.taxonomy[taxIdx].statement}"`;
+                
+                // Start Timer Loop
+                clearInterval(taxTimer);
+                taxTimeLeft = 100;
+                document.getElementById('tax-timer-bar').style.width = '100%';
+                
+                taxTimer = setInterval(() => {
+                    taxTimeLeft -= (100 / (7 * 10)); // 7 seconds total
+                    if(taxTimeLeft <= 0) {
+                        clearInterval(taxTimer);
+                        classifyTaxonomy('TIMEOUT'); 
+                    } else {
+                        document.getElementById('tax-timer-bar').style.width = taxTimeLeft + '%';
+                    }
+                }, 100);
             }
         }
 
         function classifyTaxonomy(chosenType) {
             if (state.games.taxonomy.solved) return;
+            clearInterval(taxTimer); // Stop timer on guess
 
-            if (db.taxonomy[taxIdx].type !== chosenType) {
+            if (chosenType === 'TIMEOUT' || db.taxonomy[taxIdx].type !== chosenType) {
                 taxScore = false;
             }
 
@@ -501,13 +590,22 @@
             if (taxIdx < db.taxonomy.length) {
                 renderTaxonomy();
             } else {
+                document.getElementById('tax-timer-container').classList.add('hidden');
                 attemptSolve('taxonomy', taxScore, 'res-taxonomy', 'ALL STATEMENTS ACCURATELY CLASSIFIED!', 'CLASSIFICATION ERROR DETECTED.');
+                
+                // Allow them to try again if failed
                 if (!taxScore) {
-                    taxIdx = 0;
-                    taxScore = true;
-                    renderTaxonomy();
+                    document.getElementById('res-taxonomy').innerHTML += `<br><button onclick="resetTaxonomy()" class="mt-3 text-xs underline font-sans font-bold">Try Timed Run Again</button>`;
                 }
             }
+        }
+
+        function resetTaxonomy() {
+            taxIdx = 0;
+            taxScore = true;
+            document.getElementById('res-taxonomy').innerHTML = "";
+            document.getElementById('tax-timer-container').classList.remove('hidden');
+            renderTaxonomy();
         }
 
         // --- GAME 4: RIVER CROSSING ---
@@ -566,8 +664,11 @@
             attemptSolve('alchemist', black === 4, 'res-alchemist', 'TRANSMUTATION COMPLETE!', 'INCORRECT MIXTURE.');
         }
 
-        // --- GAME 9: EULER GRID (Palette Engine) ---
-        let eulState = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+        // --- GAME 9: EULER GRID (5x5 Advanced) ---
+        // Need to initialize a 5x5 zero array
+        let eulState = [
+            [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0]
+        ];
         let selectedEulerSym = 1;
 
         function selectEulerSymbol(symVal, btnEl) {
@@ -578,14 +679,14 @@
 
         function renderEuler() {
             let html = "";
-            for(let r=0; r<4; r++) {
-                for(let c=0; c<4; c++) {
+            for(let r=0; r<5; r++) {
+                for(let c=0; c<5; c++) {
                     let isHidden = db.euler.hide.some(arr => arr[0]===r && arr[1]===c);
                     if(isHidden) {
-                        html += `<button onclick="placeEulerSymbol(${r},${c})" id="eu-${r}-${c}" class="w-10 h-10 bg-white border border-gray-400 rounded text-lg font-bold flex items-center justify-center cursor-pointer"></button>`;
+                        html += `<button onclick="placeEulerSymbol(${r},${c})" id="eu-${r}-${c}" class="w-10 h-10 bg-white border border-gray-400 rounded text-base sm:text-lg font-bold flex items-center justify-center cursor-pointer"></button>`;
                     } else {
                         eulState[r][c] = db.euler.grid[r][c];
-                        html += `<div class="w-10 h-10 bg-parchment text-ink-muted border border-gray-500 rounded text-lg font-bold flex items-center justify-center">${db.euler.symbols[db.euler.grid[r][c]]}</div>`;
+                        html += `<div class="w-10 h-10 bg-parchment text-ink-muted border border-gray-500 rounded text-base sm:text-lg font-bold flex items-center justify-center">${db.euler.symbols[db.euler.grid[r][c]]}</div>`;
                     }
                 }
             }
@@ -600,18 +701,18 @@
 
         function checkEuler() {
             let valid = true;
-            for(let i=0; i<4; i++) {
+            for(let i=0; i<5; i++) {
                 let rSet = new Set(), cSet = new Set();
-                for(let j=0; j<4; j++) {
+                for(let j=0; j<5; j++) {
                     if(eulState[i][j]===0 || eulState[j][i]===0) valid = false;
                     rSet.add(eulState[i][j]); cSet.add(eulState[j][i]);
                 }
-                if(rSet.size !== 4 || cSet.size !== 4) valid = false;
+                if(rSet.size !== 5 || cSet.size !== 5) valid = false;
             }
             attemptSolve('euler', valid, 'res-euler', 'SQUARE BALANCED!', 'GRID CONFLICT DETECTED.');
         }
 
-        // --- GAME 10: CIPHER ENGINE ---
+        // --- GAME 10: CIPHER (Spacing Bug Fixed) ---
         function renderCipher() {
             let words = db.cipher.encoded.split(' ');
             let html = words.map(w => {
@@ -638,15 +739,15 @@
         function checkCipher() {
             let inputs = document.querySelectorAll('#cipher-box input');
             let valid = true;
+            let inputIdx = 0;
             
-            let idx = 0;
-            for(let w of db.cipher.encoded.split(' ')) {
-                for(let c of w) {
-                    if(inputs[idx].value !== db.cipher.quote[idx]) valid = false;
-                    idx++;
-                }
-                idx++; 
+            // Loop through the actual answer string, skipping spaces
+            for(let i = 0; i < db.cipher.quote.length; i++) {
+                if (db.cipher.quote[i] === ' ') continue; 
+                if (inputs[inputIdx].value !== db.cipher.quote[i]) valid = false;
+                inputIdx++;
             }
+            
             attemptSolve('cipher', valid, 'res-cipher', 'MESSAGE DECODED!', 'INCORRECT TRANSLATION.');
         }
 
